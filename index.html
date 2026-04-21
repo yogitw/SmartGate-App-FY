@@ -10,6 +10,8 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Library untuk Kamera -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -39,7 +41,7 @@
         
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #F8FAFC;
+            background-color: #FFFFFF;
         }
 
         @keyframes scan {
@@ -50,12 +52,26 @@
         .animate-scan { animation: scan 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(22, 163, 74, 0.1);
         }
 
         ::-webkit-scrollbar { width: 0px; display: none; }
+
+        #reader__dashboard_section_csr button {
+            background-color: #16a34a !important;
+            color: white !important;
+            padding: 10px 20px !important;
+            border-radius: 12px !important;
+            font-weight: bold !important;
+            border: none !important;
+            margin-top: 10px !important;
+        }
+        #reader video {
+            border-radius: 2rem !important;
+            object-fit: cover !important;
+        }
     </style>
 </head>
 <body class="text-slate-900">
@@ -136,6 +152,7 @@
             const [searchQuery, setSearchQuery] = useState('');
             const [registeredQR, setRegisteredQR] = useState(null);
             const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+            const scannerRef = useRef(null);
 
             useEffect(() => {
                 if (!auth) return;
@@ -160,6 +177,32 @@
                 
                 return () => { unsubV(); unsubL(); };
             }, [user, db]);
+
+            // Logika Menghidupkan Kamera
+            useEffect(() => {
+                if (view === 'scan') {
+                    const html5QrCode = new Html5Qrcode("reader");
+                    const qrConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+                    html5QrCode.start(
+                        { facingMode: "environment" }, 
+                        qrConfig,
+                        (decodedText) => {
+                            processScan(decodedText);
+                            html5QrCode.stop();
+                        },
+                        (errorMessage) => {}
+                    ).catch(err => {
+                        console.error("Gagal kamera:", err);
+                    });
+
+                    return () => {
+                        if (html5QrCode.isScanning) {
+                            html5QrCode.stop().catch(e => console.log(e));
+                        }
+                    };
+                }
+            }, [view]);
 
             const showStatus = (text, type = 'success') => {
                 setStatusMsg({ text, type });
@@ -223,19 +266,19 @@
                     <html><head><title>Stiker Akses - ${registeredQR.platNomor}</title>
                     <style>
                         body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 50px; background: #fff; }
-                        .card { border: 5px solid #064e3b; padding: 30px; border-radius: 40px; text-align: center; width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-                        .tag { background: #059669; color: #fff; display: inline-block; padding: 5px 20px; border-radius: 10px; font-weight: 900; font-size: 12px; letter-spacing: 2px; margin-bottom: 20px; }
-                        .plat { font-size: 60px; font-weight: 900; margin: 15px 0; font-family: 'Courier New', monospace; border-top: 2px solid #eee; border-bottom: 2px solid #eee; padding: 10px 0; color: #064e3b; }
-                        .owner { font-size: 20px; font-weight: 800; color: #333; text-transform: uppercase; margin-top: 10px; }
-                        .id { font-size: 10px; color: #999; margin-top: 25px; font-weight: bold; }
+                        .card { border: 10px solid #065f46; padding: 40px; border-radius: 50px; text-align: center; width: 450px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+                        .tag { background: #059669; color: #fff; display: inline-block; padding: 8px 25px; border-radius: 15px; font-weight: 900; font-size: 14px; letter-spacing: 3px; margin-bottom: 25px; }
+                        .plat { font-size: 70px; font-weight: 900; margin: 15px 0; font-family: 'Courier New', monospace; border-top: 4px solid #eee; border-bottom: 4px solid #eee; padding: 15px 0; color: #064e3b; }
+                        .owner { font-size: 24px; font-weight: 800; color: #333; text-transform: uppercase; margin-top: 10px; }
+                        .id { font-size: 11px; color: #999; margin-top: 30px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
                     </style></head>
                     <body onload="window.print(); window.close();">
                         <div class="card">
                             <div class="tag">AFDELING VI - SEI ROKAN</div>
-                            <div><img src="${registeredQR.qrUrl}" style="width:240px;" /></div>
+                            <div><img src="${registeredQR.qrUrl}" style="width:260px;" /></div>
                             <div class="plat">${registeredQR.platNomor}</div>
                             <div class="owner">${registeredQR.namaPemilik}</div>
-                            <div class="id">SMARTGATE ACCESS SYSTEM • KEBUN SEI ROKAN • ${registeredQR.date}</div>
+                            <div class="id">SMARTGATE SYSTEM • KEBUN SEI ROKAN • ${registeredQR.date}</div>
                         </div>
                     </body></html>
                 `);
@@ -246,15 +289,15 @@
             return (
                 <div className="min-h-screen flex flex-col md:flex-row overflow-hidden bg-white">
                     
-                    {}
+                    {/* Sidebar */}
                     <aside className={`fixed md:sticky top-0 left-0 h-screen w-80 bg-white border-r border-slate-100 transition-all duration-500 z-50 p-8 flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
                         <div className="flex items-center gap-4 mb-12">
                             <div className="h-14 w-14 bg-gradient-to-br from-emerald-600 to-green-600 rounded-[1.25rem] flex items-center justify-center text-white shadow-xl shadow-emerald-100">
                                 <Icon name="qr-code" size={28} />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-extrabold tracking-tight text-slate-800">SmartGate</h1>
-                                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none mt-1">Virtual Guard</p>
+                                <h1 className="text-2xl font-extrabold tracking-tight text-slate-800 leading-none">SmartGate</h1>
+                                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Virtual Guard</p>
                             </div>
                         </div>
 
@@ -278,18 +321,18 @@
 
                         <div className="mt-auto bg-emerald-50 p-5 rounded-[2rem] border border-emerald-100 flex items-center gap-4">
                             <div className="h-10 w-10 rounded-full bg-white shadow-sm flex items-center justify-center text-emerald-600 font-black text-xs border uppercase">VI</div>
-                            <div className="overflow-hidden">
-                                <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Active Station</p>
-                                <p className="text-xs font-bold text-emerald-900 truncate">AFDELING VI SEI ROKAN</p>
+                            <div className="overflow-hidden text-left">
+                                <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest leading-none mb-1">Active Station</p>
+                                <p className="text-xs font-bold text-emerald-900 truncate uppercase">AFDELING VI SEI ROKAN</p>
                             </div>
                         </div>
                     </aside>
 
-                    {}
+                    {/* Main Content */}
                     <main className="flex-1 p-6 md:p-12 relative overflow-y-auto h-screen bg-[#F8FAFC]">
                         <header className="md:hidden flex justify-between items-center mb-8 bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
-                            <button onClick={() => setIsSidebarOpen(true)} className="p-3 bg-slate-50 rounded-2xl text-slate-600"><Icon name="menu" /></button>
-                            <span className="font-black text-emerald-600 text-[10px] tracking-[0.2em] uppercase">AFDELING VI</span>
+                            <button onClick={() => setIsSidebarOpen(true)} className="p-3 bg-emerald-50 rounded-2xl text-emerald-600"><Icon name="menu" /></button>
+                            <span className="font-black text-emerald-600 text-[10px] tracking-[0.2em] uppercase">AFDELING VI SEI ROKAN</span>
                         </header>
 
                         {statusMsg && (
@@ -307,21 +350,21 @@
                                             <Icon name="map-pin" size={20} className="text-emerald-100" />
                                             <span className="font-bold text-sm tracking-widest uppercase text-emerald-100">Pos Penjagaan Sei Rokan</span>
                                         </div>
-                                        <h2 className="text-4xl font-black mb-4 tracking-tight">Status Gerbang: Aktif</h2>
-                                        <p className="text-emerald-50 font-medium max-w-lg mb-10 leading-relaxed opacity-80">Sistem identifikasi unit Kebun Sei Rokan. Memantau mobilitas kendaraan di area Afdeling VI secara real-time.</p>
+                                        <h2 className="text-4xl font-black mb-4 tracking-tight">Gerbang Online</h2>
+                                        <p className="text-emerald-50 font-medium max-w-lg mb-10 leading-relaxed opacity-80">Sistem keamanan cerdas untuk monitoring akses kendaraan di area Kebun Sei Rokan - Afdeling VI.</p>
                                         
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                                            <div className="bg-white/10 p-6 rounded-3xl backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all">
-                                                <p className="text-[10px] font-black opacity-60 uppercase tracking-[0.2em] mb-2">Unit Terdaftar</p>
+                                            <div className="bg-white/10 p-6 rounded-3xl backdrop-blur-md border border-white/10">
+                                                <p className="text-[10px] font-black opacity-60 uppercase tracking-[0.2em] mb-2">Total Terdaftar</p>
                                                 <p className="text-4xl font-black">{vehicles.length}</p>
                                             </div>
-                                            <div className="bg-white/10 p-6 rounded-3xl backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all">
+                                            <div className="bg-white/10 p-6 rounded-3xl backdrop-blur-md border border-white/10">
                                                 <p className="text-[10px] font-black opacity-60 uppercase tracking-[0.2em] mb-2">Unit Di Dalam</p>
                                                 <p className="text-4xl font-black text-white">{vehicles.filter(v=>v.status==='di_dalam').length}</p>
                                             </div>
                                         </div>
                                     </div>
-                                    <Icon name="shield-check" size={300} className="absolute -right-16 -bottom-16 opacity-10 rotate-12 transition-transform duration-1000 group-hover:rotate-6" />
+                                    <Icon name="shield-check" size={300} className="absolute -right-16 -bottom-16 opacity-10 rotate-12" />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -329,7 +372,7 @@
                                         <div className="h-20 w-20 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><Icon name="shield-check" size={40} /></div>
                                         <div className="text-left">
                                             <h3 className="text-2xl font-black text-slate-800">Scan & Akses</h3>
-                                            <p className="text-emerald-600 font-bold text-sm italic uppercase tracking-tighter">Otoritas Security</p>
+                                            <p className="text-emerald-600 font-bold text-sm uppercase tracking-tighter">Otoritas Security</p>
                                         </div>
                                     </button>
                                     <button onClick={()=>setView('register')} className="p-10 bg-white rounded-[3rem] border border-slate-100 shadow-sm flex items-center gap-8 hover:shadow-xl hover:-translate-y-1 transition-all group">
@@ -339,7 +382,7 @@
                                         </div>
                                         <div className="text-left">
                                             <h3 className="text-2xl font-black text-slate-800">Registrasi Unit</h3>
-                                            <p className="text-slate-400 font-bold text-sm">Input Kendaraan Baru</p>
+                                            <p className="text-slate-400 font-bold text-sm">Pendaftaran Kendaraan</p>
                                         </div>
                                     </button>
                                 </div>
@@ -347,41 +390,50 @@
                         )}
 
                         {view === 'scan' && (
-                            <div className="max-w-2xl mx-auto space-y-8 text-center animate-in zoom-in-95 duration-500">
+                            <div className="max-w-2xl mx-auto space-y-8 text-center animate-in zoom-in-95 duration-500 pb-20">
                                 <div className="space-y-2">
                                     <div className="bg-emerald-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600 border border-emerald-100">
                                         <Icon name="shield-check" size={32} />
                                     </div>
-                                    <h2 className="text-3xl font-black text-slate-800 tracking-tight">Otoritas Security</h2>
-                                    <p className="text-emerald-500 font-bold uppercase text-[10px] tracking-[0.3em]">Gerbang Afdeling VI Sei Rokan</p>
+                                    <h2 className="text-3xl font-black text-slate-800">Arahkan QR Ke Kamera</h2>
+                                    <p className="text-emerald-600 font-bold uppercase text-[10px] tracking-[0.3em]">Otoritas Security Afdeling VI</p>
                                 </div>
                                 
-                                <div className="bg-slate-900 aspect-square rounded-[4rem] p-16 relative overflow-hidden border-[15px] border-white shadow-2xl shadow-emerald-100">
-                                    <div className="w-full h-full border-2 border-emerald-500/20 rounded-[3rem] relative flex items-center justify-center">
-                                        <div className="absolute top-0 left-0 w-20 h-20 border-t-[6px] border-l-[6px] border-emerald-400 rounded-tl-[2rem]"></div>
-                                        <div className="absolute top-0 right-0 w-20 h-20 border-t-[6px] border-r-[6px] border-emerald-400 rounded-tr-[2rem]"></div>
-                                        <div className="absolute bottom-0 left-0 w-20 h-20 border-b-[6px] border-l-[6px] border-emerald-400 rounded-bl-[2rem]"></div>
-                                        <div className="absolute bottom-0 right-0 w-20 h-20 border-b-[6px] border-r-[6px] border-emerald-400 rounded-br-[2rem]"></div>
-                                        
-                                        <div className="absolute w-full h-2 bg-gradient-to-r from-transparent via-emerald-400 to-transparent top-0 animate-scan shadow-[0_0_20px_emerald]"></div>
-                                        <Icon name="shield-check" size={150} className="text-white/5" />
+                                <div className="bg-slate-900 aspect-square rounded-[4rem] p-4 relative overflow-hidden border-[15px] border-white shadow-2xl shadow-emerald-100">
+                                    {/* Video Container */}
+                                    <div id="reader" className="w-full h-full rounded-[3rem] overflow-hidden"></div>
+                                    
+                                    {/* Laser Overlay */}
+                                    <div className="absolute inset-0 pointer-events-none p-12">
+                                        <div className="w-full h-full border-2 border-emerald-500/20 rounded-[3rem] relative">
+                                            <div className="absolute top-0 left-0 w-16 h-16 border-t-[6px] border-l-[6px] border-emerald-400 rounded-tl-[2rem]"></div>
+                                            <div className="absolute top-0 right-0 w-16 h-16 border-t-[6px] border-r-[6px] border-emerald-400 rounded-tr-[2rem]"></div>
+                                            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-[6px] border-l-[6px] border-emerald-400 rounded-bl-[2rem]"></div>
+                                            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-[6px] border-r-[6px] border-emerald-400 rounded-br-[2rem]"></div>
+                                            <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent top-0 animate-scan shadow-[0_0_20px_emerald]"></div>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <div className="bg-white p-8 rounded-[3rem] border border-slate-100">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Atau Input Manual Plat Nomor</p>
                                     <input 
                                         autoFocus 
-                                        placeholder="SCAN QR / KETIK PLAT..." 
+                                        placeholder="KETIK PLAT..." 
                                         onKeyPress={e => e.key === 'Enter' && processScan(e.target.value)} 
-                                        className="absolute bottom-16 left-1/2 -translate-x-1/2 w-[85%] p-6 bg-white/10 text-white text-center rounded-3xl border border-white/20 outline-none uppercase font-black text-3xl placeholder:text-white/10 tracking-tighter shadow-inner focus:bg-white/20 transition-all" 
+                                        className="w-full p-6 bg-slate-50 text-emerald-700 text-center rounded-[2rem] border-2 border-emerald-50 outline-none uppercase font-black text-2xl placeholder:opacity-20 focus:bg-white focus:border-emerald-500 transition-all" 
                                     />
                                 </div>
-                                <button onClick={()=>setView('dashboard')} className="text-emerald-600 font-black hover:text-emerald-800 transition-all uppercase text-xs tracking-[0.2em]">Batalkan Sesi Petugas</button>
+
+                                <button onClick={()=>setView('dashboard')} className="text-emerald-600 font-black hover:text-emerald-800 transition-all uppercase text-xs tracking-[0.2em] bg-white px-8 py-4 rounded-full border">Batalkan Pemindaian</button>
                             </div>
                         )}
 
                         {view === 'register' && (
                             <div className="max-w-2xl mx-auto animate-in slide-in-from-bottom-12 duration-700">
                                 {!registeredQR ? (
-                                    <div className="bg-white p-12 rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-100">
-                                        <div className="flex items-center gap-6 mb-12">
+                                    <div className="bg-white p-12 rounded-[3.5rem] border border-slate-100 shadow-xl">
+                                        <div className="flex items-center gap-6 mb-12 text-left">
                                             <div className="h-16 w-16 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center flex-col gap-1 border">
                                                 <Icon name="car" size={24} />
                                                 <Icon name="bike" size={20} />
@@ -391,14 +443,14 @@
                                                 <p className="text-[10px] font-bold text-emerald-600 uppercase mt-2 tracking-widest">Pendaftaran Kendaraan Baru</p>
                                             </div>
                                         </div>
-                                        <form onSubmit={handleRegisterVehicle} className="space-y-8">
+                                        <form onSubmit={handleRegisterVehicle} className="space-y-8 text-left">
                                             <div className="space-y-4">
                                                 <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">Nomor Plat Kendaraan</label>
-                                                <input name="platNomor" required placeholder="B 1234 XYZ" className="w-full p-7 bg-slate-50 rounded-3xl border border-slate-100 font-black uppercase outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 transition-all text-3xl tracking-tighter" />
+                                                <input name="platNomor" required placeholder="B 1234 XYZ" className="w-full p-7 bg-slate-50 rounded-3xl border border-slate-100 font-black uppercase outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 transition-all text-3xl tracking-tighter shadow-inner" />
                                             </div>
                                             <div className="space-y-4">
                                                 <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">Nama Lengkap Pemilik / Unit</label>
-                                                <input name="namaPemilik" required placeholder="NAMA LENGKAP" className="w-full p-7 bg-slate-50 rounded-3xl border border-slate-100 font-bold uppercase outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 transition-all text-lg" />
+                                                <input name="namaPemilik" required placeholder="NAMA LENGKAP" className="w-full p-7 bg-slate-50 rounded-3xl border border-slate-100 font-bold uppercase outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 transition-all text-lg shadow-inner" />
                                             </div>
                                             <button disabled={isLoading} className="w-full bg-emerald-600 text-white p-7 rounded-[2rem] font-black text-lg shadow-2xl shadow-emerald-100 hover:bg-emerald-700 hover:-translate-y-1 transition-all active:scale-95">{isLoading ? 'Memproses Data...' : 'SIMPAN & GENERATE QR'}</button>
                                         </form>
@@ -425,7 +477,7 @@
                         {view === 'history' && (
                             <div className="space-y-10 animate-in fade-in duration-700">
                                 <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                                    <div className="space-y-1">
+                                    <div className="space-y-1 text-left">
                                         <h2 className="text-3xl font-black text-slate-800 tracking-tight">Riwayat Akses</h2>
                                         <p className="text-emerald-600 font-bold text-xs uppercase tracking-[0.2em]">Mobilitas Kebun Sei Rokan</p>
                                     </div>
