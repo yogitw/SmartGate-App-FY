@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartGate Pro - Premium Virtual Guard</title>
+    <title>SmartGate - AFDELING VI SEI ROKAN</title>
     
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -16,7 +16,6 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, addDoc, updateDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Konfigurasi Firebase Anda
         const firebaseConfig = {
             apiKey: "AIzaSyBvXN-verMsJQQC77p1I7Abc5vOAScPR2k",
             authDomain: "smartgate-app-fy.firebaseapp.com",
@@ -30,7 +29,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = "smartgate-pro-v1";
+        const appId = "smartgate-sei-rokan-v1";
 
         window.fb = { auth, db, appId, Timestamp, collection, doc, setDoc, getDoc, onSnapshot, addDoc, updateDoc, signInAnonymously, onAuthStateChanged };
     </script>
@@ -67,31 +66,62 @@
 
         const Icon = ({ name, size = 24, className = "" }) => {
             const iconRef = useRef(null);
+
+            const getIconName = (n) => {
+                const map = {
+                    'qr-code': 'QrCode',
+                    'shield-check': 'ShieldCheck',
+                    'car': 'Car',
+                    'bike': 'Motorcycle',
+                    'layout-dashboard': 'LayoutDashboard',
+                    'clock-3': 'Clock3',
+                    'plus-circle': 'PlusCircle',
+                    'history': 'History',
+                    'printer': 'Printer',
+                    'search': 'Search',
+                    'menu': 'Menu',
+                    'check-circle-2': 'CheckCircle2',
+                    'alert-circle': 'AlertCircle',
+                    'map-pin': 'MapPin'
+                };
+                return map[n] || n;
+            };
+
             useEffect(() => {
-                if (window.lucide && iconRef.current) {
-                    iconRef.current.innerHTML = '';
-                    const iconData = window.lucide.icons[name];
-                    if (iconData) {
-                        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                        svg.setAttribute("width", size);
-                        svg.setAttribute("height", size);
-                        svg.setAttribute("viewBox", "0 0 24 24");
-                        svg.setAttribute("fill", "none");
-                        svg.setAttribute("stroke", "currentColor");
-                        svg.setAttribute("stroke-width", "2.5");
-                        svg.setAttribute("stroke-linecap", "round");
-                        svg.setAttribute("stroke-linejoin", "round");
-                        svg.setAttribute("class", `lucide lucide-${name} ${className}`);
-                        iconData.forEach(([tag, attrs]) => {
-                            const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
-                            Object.entries(attrs).forEach(([key, value]) => element.setAttribute(key, value));
-                            svg.appendChild(element);
-                        });
-                        iconRef.current.appendChild(svg);
+                const renderIcon = () => {
+                    if (window.lucide && iconRef.current) {
+                        iconRef.current.innerHTML = '';
+                        const cleanName = getIconName(name);
+                        const iconData = window.lucide.icons[cleanName];
+                        
+                        if (iconData) {
+                            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                            svg.setAttribute("width", size);
+                            svg.setAttribute("height", size);
+                            svg.setAttribute("viewBox", "0 0 24 24");
+                            svg.setAttribute("fill", "none");
+                            svg.setAttribute("stroke", "currentColor");
+                            svg.setAttribute("stroke-width", "2.5");
+                            svg.setAttribute("stroke-linecap", "round");
+                            svg.setAttribute("stroke-linejoin", "round");
+                            svg.setAttribute("class", `lucide lucide-${name} ${className}`);
+                            
+                            iconData.forEach(([tag, attrs]) => {
+                                const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
+                                Object.entries(attrs).forEach(([key, value]) => element.setAttribute(key, value));
+                                svg.appendChild(element);
+                            });
+                            iconRef.current.appendChild(svg);
+                        }
                     }
-                }
+                };
+
+                renderIcon();
+                const timer = setTimeout(renderIcon, 500);
+                return () => clearTimeout(timer);
             }, [name, size, className]);
-            return <div ref={iconRef} className="inline-flex items-center justify-center" />;
+
+            return <div ref={iconRef} className="inline-flex items-center justify-center pointer-events-none" />;
         };
 
         function App() {
@@ -168,7 +198,7 @@
                     if (vData.status === 'di_luar') {
                         await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'logs'), {
                             platNomor: plat, namaPemilik: vData.namaPemilik, tipe: 'MASUK',
-                            timestampMasuk: Timestamp.now(), status: 'AKTIF'
+                            timestampMasuk: Timestamp.now(), status: 'AKTIF', lokasi: 'AFDELING VI'
                         });
                         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'vehicles', plat), { status: 'di_dalam' });
                         showStatus("SELAMAT DATANG: " + plat);
@@ -193,19 +223,19 @@
                     <html><head><title>Stiker Akses - ${registeredQR.platNomor}</title>
                     <style>
                         body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 50px; background: #fff; }
-                        .card { border: 5px solid #000; padding: 30px; border-radius: 40px; text-align: center; width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-                        .tag { background: #000; color: #fff; display: inline-block; padding: 5px 20px; border-radius: 10px; font-weight: 900; font-size: 12px; letter-spacing: 2px; margin-bottom: 20px; }
-                        .plat { font-size: 60px; font-weight: 900; margin: 15px 0; font-family: 'Courier New', monospace; border-top: 2px solid #eee; border-bottom: 2px solid #eee; padding: 10px 0; }
+                        .card { border: 5px solid #064e3b; padding: 30px; border-radius: 40px; text-align: center; width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+                        .tag { background: #059669; color: #fff; display: inline-block; padding: 5px 20px; border-radius: 10px; font-weight: 900; font-size: 12px; letter-spacing: 2px; margin-bottom: 20px; }
+                        .plat { font-size: 60px; font-weight: 900; margin: 15px 0; font-family: 'Courier New', monospace; border-top: 2px solid #eee; border-bottom: 2px solid #eee; padding: 10px 0; color: #064e3b; }
                         .owner { font-size: 20px; font-weight: 800; color: #333; text-transform: uppercase; margin-top: 10px; }
                         .id { font-size: 10px; color: #999; margin-top: 25px; font-weight: bold; }
                     </style></head>
                     <body onload="window.print(); window.close();">
                         <div class="card">
-                            <div class="tag">AUTHORIZED VEHICLE</div>
+                            <div class="tag">AFDELING VI - SEI ROKAN</div>
                             <div><img src="${registeredQR.qrUrl}" style="width:240px;" /></div>
                             <div class="plat">${registeredQR.platNomor}</div>
                             <div class="owner">${registeredQR.namaPemilik}</div>
-                            <div class="id">SMARTGATE ACCESS SYSTEM • VERIFIED ${registeredQR.date}</div>
+                            <div class="id">SMARTGATE ACCESS SYSTEM • KEBUN SEI ROKAN • ${registeredQR.date}</div>
                         </div>
                     </body></html>
                 `);
@@ -214,30 +244,31 @@
             const filteredLogs = logs.filter(l => l.platNomor.toLowerCase().includes(searchQuery.toLowerCase()) || l.namaPemilik.toLowerCase().includes(searchQuery.toLowerCase()));
 
             return (
-                <div className="min-h-screen flex flex-col md:flex-row overflow-hidden">
+                <div className="min-h-screen flex flex-col md:flex-row overflow-hidden bg-white">
+                    
                     {}
                     <aside className={`fixed md:sticky top-0 left-0 h-screen w-80 bg-white border-r border-slate-100 transition-all duration-500 z-50 p-8 flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
                         <div className="flex items-center gap-4 mb-12">
-                            <div className="h-14 w-14 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-[1.25rem] flex items-center justify-center text-white shadow-xl shadow-indigo-100">
+                            <div className="h-14 w-14 bg-gradient-to-br from-emerald-600 to-green-600 rounded-[1.25rem] flex items-center justify-center text-white shadow-xl shadow-emerald-100">
                                 <Icon name="qr-code" size={28} />
                             </div>
                             <div>
                                 <h1 className="text-2xl font-extrabold tracking-tight text-slate-800">SmartGate</h1>
-                                <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest leading-none mt-1">Virtual Guard</p>
+                                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none mt-1">Virtual Guard</p>
                             </div>
                         </div>
 
                         <nav className="space-y-3 flex-1">
                             {[
                                 {id: 'dashboard', icon: 'layout-dashboard', label: 'Dashboard Overview'},
-                                {id: 'scan', icon: 'camera', label: 'Scanner Mode'},
-                                {id: 'register', icon: 'user-plus', label: 'Registrasi Unit'},
-                                {id: 'history', icon: 'clock-3', label: 'Log Aktivitas'}
+                                {id: 'scan', icon: 'shield-check', label: 'Scan Akses Satpam'},
+                                {id: 'register', icon: 'car', label: 'Registrasi Unit'},
+                                {id: 'history', icon: 'history', label: 'Log Aktivitas'}
                             ].map(item => (
                                 <button 
                                     key={item.id} 
                                     onClick={() => {setView(item.id); setIsSidebarOpen(false)}} 
-                                    className={`flex items-center space-x-4 w-full p-4 rounded-2xl font-bold text-sm transition-all duration-300 ${view === item.id ? 'bg-indigo-600 text-white shadow-2xl shadow-indigo-200' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600'}`}
+                                    className={`flex items-center space-x-4 w-full p-4 rounded-2xl font-bold text-sm transition-all duration-300 ${view === item.id ? 'bg-emerald-600 text-white shadow-2xl shadow-emerald-200' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600'}`}
                                 >
                                     <Icon name={item.icon} size={22} />
                                     <span>{item.label}</span>
@@ -245,24 +276,22 @@
                             ))}
                         </nav>
 
-                        <div className="mt-auto bg-slate-50 p-5 rounded-[2rem] border border-slate-100 flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-full bg-white shadow-sm flex items-center justify-center text-indigo-600 font-black text-xs border">ID</div>
+                        <div className="mt-auto bg-emerald-50 p-5 rounded-[2rem] border border-emerald-100 flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-full bg-white shadow-sm flex items-center justify-center text-emerald-600 font-black text-xs border uppercase">VI</div>
                             <div className="overflow-hidden">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Station</p>
-                                <p className="text-xs font-bold text-slate-700 truncate">{user?.uid || 'Connecting...'}</p>
+                                <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Active Station</p>
+                                <p className="text-xs font-bold text-emerald-900 truncate">AFDELING VI SEI ROKAN</p>
                             </div>
                         </div>
                     </aside>
 
                     {}
                     <main className="flex-1 p-6 md:p-12 relative overflow-y-auto h-screen bg-[#F8FAFC]">
-                        {/* Mobile Header */}
                         <header className="md:hidden flex justify-between items-center mb-8 bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
                             <button onClick={() => setIsSidebarOpen(true)} className="p-3 bg-slate-50 rounded-2xl text-slate-600"><Icon name="menu" /></button>
-                            <span className="font-black text-indigo-600 text-xs tracking-[0.2em] uppercase">Operator Pro</span>
+                            <span className="font-black text-emerald-600 text-[10px] tracking-[0.2em] uppercase">AFDELING VI</span>
                         </header>
 
-                        {}
                         {statusMsg && (
                             <div className={`fixed top-8 left-1/2 -translate-x-1/2 px-8 py-4 rounded-[2rem] text-white font-bold shadow-2xl z-[100] flex items-center gap-4 animate-bounce ${statusMsg.type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
                                 <Icon name={statusMsg.type === 'success' ? 'check-circle-2' : 'alert-circle'} size={20} />
@@ -272,38 +301,45 @@
 
                         {view === 'dashboard' && (
                             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                <div className="bg-indigo-600 p-12 rounded-[3.5rem] text-white shadow-2xl shadow-indigo-100 relative overflow-hidden group">
+                                <div className="bg-emerald-600 p-12 rounded-[3.5rem] text-white shadow-2xl shadow-emerald-100 relative overflow-hidden group">
                                     <div className="relative z-10">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <Icon name="map-pin" size={20} className="text-emerald-100" />
+                                            <span className="font-bold text-sm tracking-widest uppercase text-emerald-100">Pos Penjagaan Sei Rokan</span>
+                                        </div>
                                         <h2 className="text-4xl font-black mb-4 tracking-tight">Status Gerbang: Aktif</h2>
-                                        <p className="text-indigo-100 font-medium max-w-lg mb-10 leading-relaxed opacity-80">Sistem otomasi akses tanpa palang mendeteksi kendaraan secara real-time. Data disinkronkan ke database cloud.</p>
+                                        <p className="text-emerald-50 font-medium max-w-lg mb-10 leading-relaxed opacity-80">Sistem identifikasi unit Kebun Sei Rokan. Memantau mobilitas kendaraan di area Afdeling VI secara real-time.</p>
                                         
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                                             <div className="bg-white/10 p-6 rounded-3xl backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all">
-                                                <p className="text-[10px] font-black opacity-60 uppercase tracking-[0.2em] mb-2">Total Unit</p>
+                                                <p className="text-[10px] font-black opacity-60 uppercase tracking-[0.2em] mb-2">Unit Terdaftar</p>
                                                 <p className="text-4xl font-black">{vehicles.length}</p>
                                             </div>
                                             <div className="bg-white/10 p-6 rounded-3xl backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all">
-                                                <p className="text-[10px] font-black opacity-60 uppercase tracking-[0.2em] mb-2">Di Dalam Area</p>
-                                                <p className="text-4xl font-black text-emerald-300">{vehicles.filter(v=>v.status==='di_dalam').length}</p>
+                                                <p className="text-[10px] font-black opacity-60 uppercase tracking-[0.2em] mb-2">Unit Di Dalam</p>
+                                                <p className="text-4xl font-black text-white">{vehicles.filter(v=>v.status==='di_dalam').length}</p>
                                             </div>
                                         </div>
                                     </div>
-                                    <Icon name="car" size={300} className="absolute -right-16 -bottom-16 opacity-10 rotate-12 transition-transform duration-1000 group-hover:rotate-6" />
+                                    <Icon name="shield-check" size={300} className="absolute -right-16 -bottom-16 opacity-10 rotate-12 transition-transform duration-1000 group-hover:rotate-6" />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <button onClick={()=>setView('scan')} className="p-10 bg-white rounded-[3rem] border border-slate-100 shadow-sm flex items-center gap-8 hover:shadow-xl hover:-translate-y-1 transition-all group">
-                                        <div className="h-20 w-20 bg-indigo-50 rounded-[2rem] flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all"><Icon name="camera" size={32} /></div>
+                                        <div className="h-20 w-20 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><Icon name="shield-check" size={40} /></div>
                                         <div className="text-left">
                                             <h3 className="text-2xl font-black text-slate-800">Scan & Akses</h3>
-                                            <p className="text-slate-400 font-bold text-sm">Mode operasional gerbang</p>
+                                            <p className="text-emerald-600 font-bold text-sm italic uppercase tracking-tighter">Otoritas Security</p>
                                         </div>
                                     </button>
                                     <button onClick={()=>setView('register')} className="p-10 bg-white rounded-[3rem] border border-slate-100 shadow-sm flex items-center gap-8 hover:shadow-xl hover:-translate-y-1 transition-all group">
-                                        <div className="h-20 w-20 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all"><Icon name="plus-circle" size={32} /></div>
+                                        <div className="h-20 w-20 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner flex flex-col items-center gap-1">
+                                            <Icon name="car" size={24} />
+                                            <Icon name="bike" size={20} />
+                                        </div>
                                         <div className="text-left">
                                             <h3 className="text-2xl font-black text-slate-800">Registrasi Unit</h3>
-                                            <p className="text-slate-400 font-bold text-sm">Input data kendaraan baru</p>
+                                            <p className="text-slate-400 font-bold text-sm">Input Kendaraan Baru</p>
                                         </div>
                                     </button>
                                 </div>
@@ -313,29 +349,31 @@
                         {view === 'scan' && (
                             <div className="max-w-2xl mx-auto space-y-8 text-center animate-in zoom-in-95 duration-500">
                                 <div className="space-y-2">
-                                    <h2 className="text-3xl font-black text-slate-800 tracking-tight">Mode Pemindaian</h2>
-                                    <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em]">Arahkan QR ke Kamera atau Input Manual</p>
+                                    <div className="bg-emerald-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600 border border-emerald-100">
+                                        <Icon name="shield-check" size={32} />
+                                    </div>
+                                    <h2 className="text-3xl font-black text-slate-800 tracking-tight">Otoritas Security</h2>
+                                    <p className="text-emerald-500 font-bold uppercase text-[10px] tracking-[0.3em]">Gerbang Afdeling VI Sei Rokan</p>
                                 </div>
                                 
-                                <div className="bg-slate-900 aspect-square rounded-[4rem] p-16 relative overflow-hidden border-[15px] border-white shadow-2xl shadow-indigo-100">
-                                    <div className="w-full h-full border-2 border-indigo-500/20 rounded-[3rem] relative flex items-center justify-center">
-                                        {}
-                                        <div className="absolute top-0 left-0 w-20 h-20 border-t-[6px] border-l-[6px] border-indigo-400 rounded-tl-[2rem]"></div>
-                                        <div className="absolute top-0 right-0 w-20 h-20 border-t-[6px] border-r-[6px] border-indigo-400 rounded-tr-[2rem]"></div>
-                                        <div className="absolute bottom-0 left-0 w-20 h-20 border-b-[6px] border-l-[6px] border-indigo-400 rounded-bl-[2rem]"></div>
-                                        <div className="absolute bottom-0 right-0 w-20 h-20 border-b-[6px] border-r-[6px] border-indigo-400 rounded-br-[2rem]"></div>
+                                <div className="bg-slate-900 aspect-square rounded-[4rem] p-16 relative overflow-hidden border-[15px] border-white shadow-2xl shadow-emerald-100">
+                                    <div className="w-full h-full border-2 border-emerald-500/20 rounded-[3rem] relative flex items-center justify-center">
+                                        <div className="absolute top-0 left-0 w-20 h-20 border-t-[6px] border-l-[6px] border-emerald-400 rounded-tl-[2rem]"></div>
+                                        <div className="absolute top-0 right-0 w-20 h-20 border-t-[6px] border-r-[6px] border-emerald-400 rounded-tr-[2rem]"></div>
+                                        <div className="absolute bottom-0 left-0 w-20 h-20 border-b-[6px] border-l-[6px] border-emerald-400 rounded-bl-[2rem]"></div>
+                                        <div className="absolute bottom-0 right-0 w-20 h-20 border-b-[6px] border-r-[6px] border-emerald-400 rounded-br-[2rem]"></div>
                                         
-                                        <div className="absolute w-full h-2 bg-gradient-to-r from-transparent via-indigo-400 to-transparent top-0 animate-scan shadow-[0_0_20px_indigo]"></div>
-                                        <Icon name="scan" size={150} className="text-white/5" />
+                                        <div className="absolute w-full h-2 bg-gradient-to-r from-transparent via-emerald-400 to-transparent top-0 animate-scan shadow-[0_0_20px_emerald]"></div>
+                                        <Icon name="shield-check" size={150} className="text-white/5" />
                                     </div>
                                     <input 
                                         autoFocus 
-                                        placeholder="Ketik Plat / Scan QR..." 
+                                        placeholder="SCAN QR / KETIK PLAT..." 
                                         onKeyPress={e => e.key === 'Enter' && processScan(e.target.value)} 
                                         className="absolute bottom-16 left-1/2 -translate-x-1/2 w-[85%] p-6 bg-white/10 text-white text-center rounded-3xl border border-white/20 outline-none uppercase font-black text-3xl placeholder:text-white/10 tracking-tighter shadow-inner focus:bg-white/20 transition-all" 
                                     />
                                 </div>
-                                <button onClick={()=>setView('dashboard')} className="text-slate-400 font-black hover:text-indigo-600 transition-all uppercase text-xs tracking-[0.2em]">Batalkan Sesi</button>
+                                <button onClick={()=>setView('dashboard')} className="text-emerald-600 font-black hover:text-emerald-800 transition-all uppercase text-xs tracking-[0.2em]">Batalkan Sesi Petugas</button>
                             </div>
                         )}
 
@@ -344,30 +382,36 @@
                                 {!registeredQR ? (
                                     <div className="bg-white p-12 rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-100">
                                         <div className="flex items-center gap-6 mb-12">
-                                            <div className="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center"><Icon name="user-plus" size={32} /></div>
-                                            <h2 className="text-3xl font-black text-slate-800">Form Pendaftaran</h2>
+                                            <div className="h-16 w-16 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center flex-col gap-1 border">
+                                                <Icon name="car" size={24} />
+                                                <Icon name="bike" size={20} />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-3xl font-black text-slate-800 leading-none">Registrasi Unit</h2>
+                                                <p className="text-[10px] font-bold text-emerald-600 uppercase mt-2 tracking-widest">Pendaftaran Kendaraan Baru</p>
+                                            </div>
                                         </div>
                                         <form onSubmit={handleRegisterVehicle} className="space-y-8">
                                             <div className="space-y-4">
-                                                <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">Nomor Plat</label>
-                                                <input name="platNomor" required placeholder="B 1234 XYZ" className="w-full p-7 bg-slate-50 rounded-3xl border border-slate-100 font-black uppercase outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all text-3xl tracking-tighter" />
+                                                <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">Nomor Plat Kendaraan</label>
+                                                <input name="platNomor" required placeholder="B 1234 XYZ" className="w-full p-7 bg-slate-50 rounded-3xl border border-slate-100 font-black uppercase outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 transition-all text-3xl tracking-tighter" />
                                             </div>
                                             <div className="space-y-4">
-                                                <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">Nama Lengkap Pemilik</label>
-                                                <input name="namaPemilik" required placeholder="NAMA LENGKAP" className="w-full p-7 bg-slate-50 rounded-3xl border border-slate-100 font-bold uppercase outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all text-lg" />
+                                                <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">Nama Lengkap Pemilik / Unit</label>
+                                                <input name="namaPemilik" required placeholder="NAMA LENGKAP" className="w-full p-7 bg-slate-50 rounded-3xl border border-slate-100 font-bold uppercase outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 transition-all text-lg" />
                                             </div>
-                                            <button disabled={isLoading} className="w-full bg-indigo-600 text-white p-7 rounded-[2rem] font-black text-lg shadow-2xl shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-1 transition-all active:scale-95">{isLoading ? 'Memproses Data...' : 'SIMPAN & GENERATE QR'}</button>
+                                            <button disabled={isLoading} className="w-full bg-emerald-600 text-white p-7 rounded-[2rem] font-black text-lg shadow-2xl shadow-emerald-100 hover:bg-emerald-700 hover:-translate-y-1 transition-all active:scale-95">{isLoading ? 'Memproses Data...' : 'SIMPAN & GENERATE QR'}</button>
                                         </form>
                                     </div>
                                 ) : (
-                                    <div className="bg-white p-12 rounded-[4rem] border-t-[15px] border-indigo-600 text-center space-y-10 shadow-2xl animate-in zoom-in-90 duration-500">
-                                        <div className="bg-slate-50 p-10 rounded-[3rem] inline-block border-2 border-dashed border-slate-200">
+                                    <div className="bg-white p-12 rounded-[4rem] border-t-[15px] border-emerald-600 text-center space-y-10 shadow-2xl animate-in zoom-in-90 duration-500">
+                                        <div className="bg-emerald-50 p-10 rounded-[3rem] inline-block border-2 border-dashed border-emerald-100">
                                             <img src={registeredQR.qrUrl} className="mx-auto w-64 h-64 rounded-2xl shadow-lg border-4 border-white" />
                                         </div>
                                         <div>
-                                            <p className="text-indigo-600 font-black text-xs uppercase tracking-[0.3em] mb-2">Unit Berhasil Terdaftar</p>
+                                            <p className="text-emerald-600 font-black text-xs uppercase tracking-[0.3em] mb-2">Unit Berhasil Terdaftar</p>
                                             <h3 className="text-6xl font-black tracking-tighter text-slate-900">{registeredQR.platNomor}</h3>
-                                            <p className="text-slate-500 font-bold uppercase mt-2 tracking-widest leading-none">{registeredQR.namaPemilik}</p>
+                                            <p className="text-slate-500 font-bold uppercase mt-2 tracking-widest">{registeredQR.namaPemilik}</p>
                                         </div>
                                         <div className="flex flex-col md:flex-row gap-4">
                                             <button onClick={handlePrint} className="flex-1 bg-slate-900 text-white p-6 rounded-[2rem] font-black flex items-center justify-center gap-4 shadow-xl hover:bg-black transition-all"><Icon name="printer" size={24} /> CETAK STIKER</button>
@@ -383,30 +427,30 @@
                                 <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                                     <div className="space-y-1">
                                         <h2 className="text-3xl font-black text-slate-800 tracking-tight">Riwayat Akses</h2>
-                                        <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">Data Trafik Keluar Masuk Kendaraan</p>
+                                        <p className="text-emerald-600 font-bold text-xs uppercase tracking-[0.2em]">Mobilitas Kebun Sei Rokan</p>
                                     </div>
                                     <div className="relative w-full md:w-96">
-                                        <Icon name="search" className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-                                        <input placeholder="Cari Plat / Nama..." onChange={e=>setSearchQuery(e.target.value)} className="w-full pl-16 pr-8 py-5 border border-slate-100 bg-white rounded-3xl outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 font-bold text-sm shadow-sm transition-all" />
+                                        <Icon name="search" className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-200" size={20} />
+                                        <input placeholder="Cari Plat / Nama..." onChange={e=>setSearchQuery(e.target.value)} className="w-full pl-16 pr-8 py-5 border border-slate-100 bg-white rounded-3xl outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 font-bold text-sm shadow-sm transition-all" />
                                     </div>
                                 </div>
                                 
                                 <div className="bg-white rounded-[3.5rem] border border-slate-100 overflow-hidden shadow-sm">
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left">
-                                            <thead className="bg-slate-50/50 border-b border-slate-50">
+                                            <thead className="bg-emerald-50/50 border-b border-emerald-50">
                                                 <tr>
-                                                    <th className="p-8 text-[10px] font-black uppercase text-slate-400 tracking-[0.3em]">Identitas Unit</th>
-                                                    <th className="p-8 text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] text-center">Waktu Masuk</th>
-                                                    <th className="p-8 text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] text-center">Waktu Keluar</th>
-                                                    <th className="p-8 text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] text-right">Status</th>
+                                                    <th className="p-8 text-[10px] font-black uppercase text-emerald-400 tracking-[0.3em]">Identitas Unit</th>
+                                                    <th className="p-8 text-[10px] font-black uppercase text-emerald-400 tracking-[0.3em] text-center">Waktu Masuk</th>
+                                                    <th className="p-8 text-[10px] font-black uppercase text-emerald-400 tracking-[0.3em] text-center">Waktu Keluar</th>
+                                                    <th className="p-8 text-[10px] font-black uppercase text-emerald-400 tracking-[0.3em] text-right">Status</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-50">
                                                 {filteredLogs.map(l => (
-                                                    <tr key={l.id} className="hover:bg-indigo-50/20 transition-all duration-300 group">
+                                                    <tr key={l.id} className="hover:bg-emerald-50/20 transition-all duration-300 group">
                                                         <td className="p-8">
-                                                            <div className="font-black text-2xl text-slate-800 group-hover:text-indigo-600 transition-colors tracking-tighter uppercase">{l.platNomor}</div>
+                                                            <div className="font-black text-2xl text-slate-800 group-hover:text-emerald-600 transition-colors tracking-tighter uppercase">{l.platNomor}</div>
                                                             <div className="text-[10px] uppercase font-bold text-slate-400 mt-1 tracking-widest">{l.namaPemilik}</div>
                                                         </td>
                                                         <td className="p-8 text-center">
@@ -419,10 +463,10 @@
                                                                     <span className="text-xs font-black text-slate-600 block">{l.timestampKeluar.toDate().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})} WIB</span>
                                                                     <span className="text-[10px] font-bold text-slate-400 block mt-1">{l.timestampKeluar.toDate().toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</span>
                                                                 </>
-                                                            ) : <span className="text-[10px] font-black text-indigo-400 italic bg-indigo-50 px-4 py-2 rounded-xl">Di Dalam Area</span>}
+                                                            ) : <span className="text-[10px] font-black text-emerald-600 italic bg-emerald-50 px-4 py-2 rounded-xl uppercase">Di Kebun</span>}
                                                         </td>
                                                         <td className="p-8 text-right">
-                                                            <span className={`px-6 py-3 rounded-2xl text-[10px] font-black tracking-widest uppercase shadow-sm ${l.status === 'AKTIF' ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-400'}`}>
+                                                            <span className={`px-6 py-3 rounded-2xl text-[10px] font-black tracking-widest uppercase shadow-sm ${l.status === 'AKTIF' ? 'bg-emerald-600 text-white shadow-emerald-100' : 'bg-slate-100 text-slate-400'}`}>
                                                                 {l.status === 'AKTIF' ? 'AUTHORIZED' : 'FINISHED'}
                                                             </span>
                                                         </td>
