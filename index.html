@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SmartGate - AFDELING VI SEI ROKAN</title>
     
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -152,9 +152,7 @@
                             await html5QrCode.start(
                                 { facingMode: "environment" }, 
                                 { fps: 10, qrbox: { width: 250, height: 250 } },
-                                (decoded) => { 
-                                    processScan(decoded);
-                                },
+                                (decoded) => { processScan(decoded); },
                                 () => {}
                             );
                         } catch (err) {
@@ -234,33 +232,33 @@
             };
 
             const DashboardView = () => (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="bg-emerald-600 p-10 md:p-14 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
-                        <div className="relative z-10 space-y-6">
-                            <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="bg-emerald-600 p-6 md:p-14 rounded-[2.5rem] md:rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
+                        <div className="relative z-10 space-y-4 md:space-y-6">
+                            <h2 className="text-3xl md:text-6xl font-black tracking-tighter uppercase leading-none">
                                 KEBUN <br/><span className="text-emerald-200">SEI ROKAN</span>
                             </h2>
-                            <div className="text-5xl md:text-7xl font-black opacity-90 tracking-tighter tabular-nums">
+                            <div className="text-4xl md:text-7xl font-black opacity-90 tracking-tighter tabular-nums">
                                 {currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} 
                             </div>
-                            <p className="text-sm font-bold uppercase tracking-[0.3em] opacity-60"> Pos Penjagaan</p>
+                            <p className="text-[10px] md:text-sm font-bold uppercase tracking-[0.2em] opacity-60 px-4">Afdeling VI - Pos Penjagaan</p>
                         </div>
-                        <Icon name="shield-check" size={400} className="absolute -right-20 -bottom-20 opacity-5 rotate-12 pointer-events-none" />
+                        <Icon name="shield-check" size={250} className="absolute -right-10 -bottom-10 opacity-10 rotate-12 pointer-events-none md:size-[400px]" />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <button onClick={() => setView('scan')} className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:border-emerald-500 hover:shadow-xl transition-all">
-                            <div className="h-16 w-16 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all"><Icon name="shield-check" size={32}/></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <button onClick={() => setView('scan')} className="bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border border-slate-100 shadow-sm flex items-center gap-4 md:gap-6 group hover:border-emerald-500 transition-all">
+                            <div className="h-12 w-12 md:h-16 md:w-16 bg-emerald-50 text-emerald-600 rounded-2xl md:rounded-3xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all"><Icon name="shield-check" size={24}/></div>
                             <div className="text-left">
-                                <h3 className="font-black text-xl text-slate-800">MULAI SCAN</h3>
-                                <p className="text-slate-400 text-sm font-medium uppercase tracking-widest">Akses Keamanan</p>
+                                <h3 className="font-black text-lg md:text-xl text-slate-800">MULAI SCAN</h3>
+                                <p className="text-slate-400 text-[10px] md:text-sm font-medium uppercase tracking-widest">Akses Keamanan</p>
                             </div>
                         </button>
-                        <button onClick={() => setView('register')} className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:border-emerald-500 hover:shadow-xl transition-all">
-                            <div className="h-16 w-16 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all"><Icon name="plus-circle" size={32}/></div>
+                        <button onClick={() => setView('register')} className="bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border border-slate-100 shadow-sm flex items-center gap-4 md:gap-6 group hover:border-emerald-500 transition-all">
+                            <div className="h-12 w-12 md:h-16 md:w-16 bg-emerald-50 text-emerald-600 rounded-2xl md:rounded-3xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all"><Icon name="plus-circle" size={24}/></div>
                             <div className="text-left">
-                                <h3 className="font-black text-xl text-slate-800">DAFTAR UNIT</h3>
-                                <p className="text-slate-400 text-sm font-medium uppercase tracking-widest">Registrasi Baru</p>
+                                <h3 className="font-black text-lg md:text-xl text-slate-800">DAFTAR UNIT</h3>
+                                <p className="text-slate-400 text-[10px] md:text-sm font-medium uppercase tracking-widest">Registrasi Baru</p>
                             </div>
                         </button>
                     </div>
@@ -269,36 +267,41 @@
 
             return (
                 <div className="min-h-screen flex flex-col md:flex-row bg-[#F8FAFC]">
+                    {/* MOBILE OVERLAY */}
+                    {isSidebarOpen && (
+                        <div onClick={() => setIsSidebarOpen(false)} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[55] md:hidden"></div>
+                    )}
+
                     {/* MODAL QR PREVIEW */}
                     {selectedQR && (
-                        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
-                            <div className="bg-white w-full max-w-sm rounded-[3.5rem] p-10 text-center shadow-2xl relative animate-in zoom-in-95">
-                                <button onClick={() => setSelectedQR(null)} className="absolute top-8 right-8 text-slate-300 hover:text-rose-500"><Icon name="x" size={28} /></button>
-                                <div className="bg-emerald-50 p-8 rounded-[2.5rem] border-2 border-dashed border-emerald-100 mb-8 inline-block">
-                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}`} className="w-48 h-48 rounded-xl" alt="QR" />
+                        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                            <div className="bg-white w-full max-w-sm rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-10 text-center shadow-2xl relative animate-in zoom-in-95">
+                                <button onClick={() => setSelectedQR(null)} className="absolute top-6 right-6 text-slate-300 hover:text-rose-500"><Icon name="x" size={24} /></button>
+                                <div className="bg-emerald-50 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border-2 border-dashed border-emerald-100 mb-6 md:mb-8 inline-block">
+                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}`} className="w-40 h-40 md:w-48 md:h-48 rounded-xl" alt="QR" />
                                 </div>
-                                <div className="mb-8">
-                                    <h3 className="text-4xl font-black text-slate-900 leading-tight">{selectedQR.platNomor}</h3>
-                                    <p className="text-emerald-600 font-bold uppercase text-xs tracking-widest mt-1">{selectedQR.namaPemilik}</p>
+                                <div className="mb-6 md:mb-8">
+                                    <h3 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight">{selectedQR.platNomor}</h3>
+                                    <p className="text-emerald-600 font-bold uppercase text-[10px] md:text-xs tracking-widest mt-1">{selectedQR.namaPemilik}</p>
                                 </div>
-                                <button onClick={() => setSelectedQR(null)} className="w-full bg-slate-100 text-slate-500 p-5 rounded-[1.5rem] font-bold hover:bg-slate-200 transition-all">TUTUP</button>
+                                <button onClick={() => setSelectedQR(null)} className="w-full bg-slate-100 text-slate-500 p-4 rounded-[1.25rem] font-bold hover:bg-slate-200 transition-all">TUTUP</button>
                             </div>
                         </div>
                     )}
 
                     {/* SIDEBAR */}
-                    <aside className={`fixed md:sticky top-0 left-0 h-screen w-80 bg-white border-r border-slate-100 transition-all z-50 p-8 flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+                    <aside className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white border-r border-slate-100 transition-transform duration-300 z-[60] p-8 flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
                         <div className="flex items-center gap-4 mb-12">
-                            <div className="h-14 w-14 bg-emerald-600 rounded-[1.25rem] flex items-center justify-center text-white shadow-xl shadow-emerald-100">
-                                <Icon name="qr-code" size={28} />
+                            <div className="h-12 w-12 bg-emerald-600 rounded-[1rem] flex items-center justify-center text-white shadow-xl">
+                                <Icon name="qr-code" size={24} />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-extrabold text-slate-800 leading-tight">SmartGate</h1>
+                                <h1 className="text-xl font-extrabold text-slate-800 leading-tight">SmartGate</h1>
                                 <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Afdeling VI</p>
                             </div>
                         </div>
 
-                        <nav className="space-y-2 flex-1">
+                        <nav className="space-y-1 flex-1">
                             {[
                                 {id: 'dashboard', icon: 'layout-dashboard', label: 'Dashboard Utama'},
                                 {id: 'scan', icon: 'shield-check', label: 'Scan Akses Satpam'},
@@ -306,202 +309,212 @@
                                 {id: 'units', icon: 'database', label: 'Data Unit Terdaftar'},
                                 {id: 'history', icon: 'history', label: 'Log Aktivitas'}
                             ].map(item => (
-                                <button key={item.id} onClick={() => {setView(item.id); setIsSidebarOpen(false)}} className={`flex items-center space-x-4 w-full p-4 rounded-2xl font-bold text-sm transition-all ${view === item.id ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600'}`}>
-                                    <Icon name={item.icon} size={22} />
+                                <button key={item.id} onClick={() => {setView(item.id); setIsSidebarOpen(false)}} className={`flex items-center space-x-4 w-full p-4 rounded-xl font-bold text-sm transition-all ${view === item.id ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600'}`}>
+                                    <Icon name={item.icon} size={20} />
                                     <span>{item.label}</span>
                                 </button>
                             ))}
                         </nav>
                         
-                        <div className="mt-auto bg-emerald-50 p-5 rounded-[2rem] border border-emerald-100 flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center text-emerald-600 font-black text-xs border">VI</div>
+                        <div className="mt-auto bg-emerald-50 p-4 rounded-[1.5rem] border border-emerald-100 flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center text-emerald-600 font-black text-[10px] border">VI</div>
                             <div className="overflow-hidden">
-                                <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Station Name</p>
-                                <p className="text-xs font-bold text-emerald-900 truncate uppercase">KEBUN SEI ROKAN</p>
+                                <p className="text-[8px] font-bold text-emerald-400 uppercase tracking-widest leading-none mb-1">Station</p>
+                                <p className="text-[10px] font-bold text-emerald-900 truncate uppercase">KEBUN SEI ROKAN</p>
                             </div>
                         </div>
                     </aside>
 
                     {/* MAIN CONTENT AREA */}
-                    <main className="flex-1 p-6 md:p-12 relative overflow-y-auto h-screen">
-                        {statusMsg && (
-                            <div className={`fixed top-8 left-1/2 -translate-x-1/2 px-8 py-4 rounded-[2rem] text-white font-bold shadow-2xl z-[100] flex items-center gap-4 animate-bounce ${statusMsg.type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
-                                <Icon name={statusMsg.type === 'success' ? 'check-circle-2' : 'alert-circle'} size={20} />
-                                <span className="text-sm">{statusMsg.text}</span>
+                    <main className="flex-1 flex flex-col h-screen overflow-hidden">
+                        {/* MOBILE TOP BAR */}
+                        <header className="md:hidden bg-white border-b p-4 flex items-center justify-between sticky top-0 z-50">
+                            <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all">
+                                <Icon name="menu" size={24} />
+                            </button>
+                            <div className="text-center">
+                                <h2 className="text-xs font-black text-emerald-600 uppercase tracking-widest leading-none">SmartGate</h2>
+                                <p className="text-[8px] font-bold text-slate-400 uppercase">Afdeling VI</p>
                             </div>
-                        )}
+                            <div className="w-10"></div> {/* Spacer for symmetry */}
+                        </header>
 
-                        {view === 'dashboard' && <DashboardView />}
+                        <div className="flex-1 overflow-y-auto p-4 md:p-12 relative">
+                            {statusMsg && (
+                                <div className={`fixed top-20 md:top-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-[1.5rem] text-white font-bold shadow-2xl z-[100] flex items-center gap-3 animate-in slide-in-from-top-4 ${statusMsg.type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
+                                    <Icon name={statusMsg.type === 'success' ? 'check-circle-2' : 'alert-circle'} size={18} />
+                                    <span className="text-xs">{statusMsg.text}</span>
+                                </div>
+                            )}
 
-                        {}
-                        {view === 'register' && (
-                            <div className="max-w-2xl mx-auto space-y-8 animate-in slide-in-from-bottom-8">
-                                {!registeredQR ? (
-                                    <div className="bg-white p-12 rounded-[3.5rem] border border-slate-100 shadow-xl">
-                                        <div className="flex items-center gap-5 mb-10">
-                                            <div className="h-16 w-16 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center shadow-inner"><Icon name="plus-circle" size={32}/></div>
+                            {view === 'dashboard' && <DashboardView />}
+
+                            {view === 'register' && (
+                                <div className="max-w-2xl mx-auto space-y-6 animate-in slide-in-from-bottom-8">
+                                    {!registeredQR ? (
+                                        <div className="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-slate-100 shadow-xl">
+                                            <div className="flex items-center gap-4 mb-8">
+                                                <div className="h-12 w-12 md:h-16 md:w-16 bg-emerald-50 text-emerald-600 rounded-2xl md:rounded-3xl flex items-center justify-center shadow-inner"><Icon name="plus-circle" size={28}/></div>
+                                                <div>
+                                                    <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Registrasi Unit</h2>
+                                                    <p className="text-emerald-500 font-bold uppercase text-[8px] md:text-[10px] tracking-widest mt-1">Input Data Kendaraan Baru</p>
+                                                </div>
+                                            </div>
+                                            <form onSubmit={handleRegister} className="space-y-6 md:space-y-8">
+                                                <div className="space-y-3">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 block">Nomor Plat Unit</label>
+                                                    <input name="plat" required placeholder="BM 1234 XY" className="w-full p-4 md:p-6 bg-slate-50 text-emerald-700 rounded-[1.5rem] md:rounded-[2rem] border-2 border-emerald-50 outline-none uppercase font-black text-xl md:text-2xl shadow-inner focus:bg-white focus:border-emerald-500 transition-all" />
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 block">Nama Pemilik</label>
+                                                    <input name="nama" required placeholder="CONTOH: BUDI SANTOSO" className="w-full p-4 md:p-6 bg-slate-50 text-slate-700 rounded-[1.5rem] md:rounded-[2rem] border-2 border-emerald-50 outline-none font-bold text-sm md:text-lg shadow-inner focus:bg-white focus:border-emerald-500 transition-all uppercase" />
+                                                </div>
+                                                <button disabled={isLoading} className="w-full bg-emerald-600 text-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] font-black text-sm md:text-lg shadow-xl hover:bg-emerald-700 transition-all active:scale-95 flex items-center justify-center gap-3">
+                                                    <Icon name="check-circle-2" size={20} />
+                                                    <span>{isLoading ? 'MEMPROSES...' : 'SIMPAN & BUAT STIKER'}</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-white p-8 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border-t-[10px] border-emerald-600 shadow-2xl flex flex-col items-center text-center space-y-8 animate-in zoom-in-95">
+                                            <div className="bg-[#F8FAFC] p-6 rounded-[2rem] border-2 border-dashed border-emerald-100 shadow-inner relative group">
+                                                <img src={registeredQR.qrUrl} alt="QR" className="w-48 h-48 md:w-64 md:h-64 rounded-2xl bg-white p-2" />
+                                            </div>
                                             <div>
-                                                <h2 className="text-3xl font-black text-slate-800 tracking-tight">Registrasi Unit</h2>
-                                                <p className="text-emerald-500 font-bold uppercase text-[10px] tracking-widest mt-1">Input Data Kendaraan Baru</p>
+                                                <p className="text-emerald-600 font-black text-[8px] md:text-[10px] uppercase tracking-[0.4em] mb-2">Unit Berhasil Terdaftar</p>
+                                                <h3 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter leading-none mb-1">{registeredQR.platNomor}</h3>
+                                                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">{registeredQR.namaPemilik}</p>
+                                            </div>
+                                            <div className="flex flex-col md:flex-row gap-3 w-full">
+                                                <button onClick={() => window.print()} className="flex-1 bg-slate-900 text-white p-4 md:p-6 rounded-[1.25rem] md:rounded-[2rem] font-black flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl text-sm">
+                                                    <Icon name="printer" size={18} /> CETAK STIKER
+                                                </button>
+                                                <button onClick={() => setRegisteredQR(null)} className="flex-1 bg-slate-100 text-slate-600 p-4 md:p-6 rounded-[1.25rem] md:rounded-[2rem] font-black hover:bg-slate-200 transition-all text-sm">DAFTAR LAIN</button>
+                                            </div>
+                                            <div className="print-only">
+                                                <div style={{ border: '4px solid black', padding: '40px', textAlign: 'center', borderRadius: '40px', width: '400px' }}>
+                                                    <h2 style={{ fontSize: '24px', fontWeight: '900', margin: '0' }}>ACCESS AUTHORIZED</h2>
+                                                    <p style={{ fontSize: '10px', fontWeight: 'bold', margin: '5px 0 20px 0', opacity: 0.5 }}>AFDELING VI - SEI ROKAN</p>
+                                                    <img src={registeredQR.qrUrl} style={{ width: '250px', height: '250px' }} />
+                                                    <h1 style={{ fontSize: '60px', fontWeight: '900', margin: '20px 0 0 0', letterSpacing: '-2px' }}>{registeredQR.platNomor}</h1>
+                                                    <p style={{ fontSize: '16px', fontWeight: 'bold', borderTop: '2px solid black', paddingTop: '10px' }}>{registeredQR.namaPemilik}</p>
+                                                </div>
                                             </div>
                                         </div>
-                                        <form onSubmit={handleRegister} className="space-y-8">
-                                            <div className="space-y-4">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 block">Nomor Plat Unit</label>
-                                                <input name="plat" required placeholder="BM 1234 XY" className="w-full p-6 bg-slate-50 text-emerald-700 rounded-[2rem] border-2 border-emerald-50 outline-none uppercase font-black text-2xl shadow-inner focus:bg-white focus:border-emerald-500 transition-all" />
-                                            </div>
-                                            <div className="space-y-4">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 block">Nama Pemilik / Penanggung Jawab</label>
-                                                <input name="nama" required placeholder="CONTOH: BUDI SANTOSO" className="w-full p-6 bg-slate-50 text-slate-700 rounded-[2rem] border-2 border-emerald-50 outline-none font-bold text-lg shadow-inner focus:bg-white focus:border-emerald-500 transition-all uppercase" />
-                                            </div>
-                                            <button disabled={isLoading} className="w-full bg-emerald-600 text-white p-6 rounded-[2rem] font-black text-lg shadow-xl hover:bg-emerald-700 transition-all active:scale-95 flex items-center justify-center gap-4">
-                                                <Icon name="check-circle-2" />
-                                                <span>{isLoading ? 'SEDANG MENYIMPAN...' : 'SIMPAN & BUAT STIKER'}</span>
-                                            </button>
-                                        </form>
+                                    )}
+                                </div>
+                            )}
+
+                            {view === 'scan' && (
+                                <div className="max-w-2xl mx-auto space-y-6 text-center animate-in zoom-in-95 pb-20">
+                                    <div className="space-y-1 text-left">
+                                        <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Scan Otorisasi</h2>
+                                        <p className="text-emerald-600 font-bold uppercase text-[8px] md:text-[10px] tracking-widest">Pos VI Sei Rokan</p>
                                     </div>
-                                ) : (
-                                    <div className="bg-white p-12 rounded-[3.5rem] border-t-[15px] border-emerald-600 shadow-2xl flex flex-col items-center text-center space-y-10 animate-in zoom-in-95">
-                                        <div className="bg-[#F8FAFC] p-10 rounded-[3rem] border-2 border-dashed border-emerald-100 shadow-inner relative group">
-                                            <img src={registeredQR.qrUrl} alt="QR" className="w-64 h-64 rounded-2xl bg-white p-2" />
-                                        </div>
-                                        <div>
-                                            <p className="text-emerald-600 font-black text-[10px] uppercase tracking-[0.4em] mb-3">Unit Berhasil Terdaftar</p>
-                                            <h3 className="text-6xl font-black text-slate-900 tracking-tighter leading-none mb-2">{registeredQR.platNomor}</h3>
-                                            <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">{registeredQR.namaPemilik}</p>
-                                        </div>
-                                        <div className="flex flex-col md:flex-row gap-4 w-full">
-                                            <button onClick={() => window.print()} className="flex-1 bg-slate-900 text-white p-6 rounded-[2rem] font-black flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl">
-                                                <Icon name="printer" /> CETAK STIKER AKSES
-                                            </button>
-                                            <button onClick={() => setRegisteredQR(null)} className="flex-1 bg-slate-100 text-slate-600 p-6 rounded-[2rem] font-black hover:bg-slate-200 transition-all">DAFTAR UNIT LAIN</button>
-                                        </div>
-                                        <div className="print-only">
-                                            <div style={{ border: '4px solid black', padding: '40px', textAlign: 'center', borderRadius: '40px', width: '400px' }}>
-                                                <h2 style={{ fontSize: '24px', fontWeight: '900', margin: '0' }}>ACCESS AUTHORIZED</h2>
-                                                <p style={{ fontSize: '10px', fontWeight: 'bold', margin: '5px 0 20px 0', opacity: 0.5 }}>AFDELING VI - SEI ROKAN</p>
-                                                <img src={registeredQR.qrUrl} style={{ width: '250px', height: '250px' }} />
-                                                <h1 style={{ fontSize: '60px', fontWeight: '900', margin: '20px 0 0 0', letterSpacing: '-2px' }}>{registeredQR.platNomor}</h1>
-                                                <p style={{ fontSize: '16px', fontWeight: 'bold', borderTop: '2px solid black', paddingTop: '10px' }}>{registeredQR.namaPemilik}</p>
+
+                                    <div className="bg-slate-900 aspect-square rounded-[2rem] md:rounded-[4rem] p-3 md:p-4 relative overflow-hidden border-[8px] md:border-[15px] border-white shadow-2xl">
+                                        <div id="reader" className="w-full h-full rounded-[1.5rem] md:rounded-[3rem] overflow-hidden"></div>
+                                        <div className="absolute inset-0 pointer-events-none p-6 md:p-12">
+                                            <div className="w-full h-full border-2 border-emerald-500/20 rounded-[1.5rem] md:rounded-[3rem] relative">
+                                                <div className="absolute top-0 left-0 w-10 h-10 border-t-[4px] border-l-[4px] border-emerald-400 rounded-tl-[1rem]"></div>
+                                                <div className="absolute bottom-0 right-0 w-10 h-10 border-b-[4px] border-r-[4px] border-emerald-400 rounded-br-[1rem]"></div>
+                                                <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent top-0 animate-scan shadow-[0_0_20px_emerald]"></div>
                                             </div>
                                         </div>
                                     </div>
-                                )}
-                            </div>
-                        )}
 
-                        {}
-                        {view === 'scan' && (
-                            <div className="max-w-2xl mx-auto space-y-8 text-center animate-in zoom-in-95 pb-20">
-                                <div className="space-y-2 text-left">
-                                    <h2 className="text-3xl font-black text-slate-800">Scan Otorisasi</h2>
-                                    <p className="text-emerald-600 font-bold uppercase text-[10px] tracking-widest">Pos VI Sei Rokan</p>
+                                    <div className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-100 space-y-4 md:space-y-6 text-left shadow-sm">
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 block">Input Plat (Manual)</label>
+                                            <input placeholder="BM 1234 XY" value={manualPlate} onChange={(e) => setManualPlate(e.target.value.toUpperCase())} className="w-full p-4 md:p-6 bg-slate-50 text-emerald-700 text-center rounded-[1.25rem] md:rounded-[2rem] border-2 border-emerald-50 outline-none uppercase font-black text-xl md:text-2xl shadow-inner focus:bg-white focus:border-emerald-500 transition-all" />
+                                        </div>
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 block">Alasan / Keperluan</label>
+                                            <textarea placeholder="Contoh: Tamu Manager, Antar Pupuk..." value={keteranganScan} onChange={(e) => setKeteranganScan(e.target.value)} className="w-full p-4 md:p-6 bg-slate-50 text-slate-700 rounded-[1.25rem] md:rounded-[2rem] border-2 border-emerald-50 outline-none font-bold text-xs md:text-sm h-20 md:h-24 focus:bg-white focus:border-emerald-500 transition-all" />
+                                        </div>
+                                        <button onClick={() => processScan()} disabled={isLoading} className="w-full bg-emerald-600 text-white p-4 md:p-6 rounded-[1.25rem] md:rounded-[2rem] font-black text-sm md:text-lg shadow-xl hover:bg-emerald-700 transition-all active:scale-95 flex items-center justify-center gap-3">
+                                            <Icon name="check-circle-2" size={20} />
+                                            <span>{isLoading ? 'MEMPROSES...' : 'PROSES LOG AKSES'}</span>
+                                        </button>
+                                    </div>
                                 </div>
+                            )}
 
-                                <div className="bg-slate-900 aspect-square rounded-[4rem] p-4 relative overflow-hidden border-[15px] border-white shadow-2xl">
-                                    <div id="reader" className="w-full h-full rounded-[3rem] overflow-hidden"></div>
-                                    <div className="absolute inset-0 pointer-events-none p-12">
-                                        <div className="w-full h-full border-2 border-emerald-500/20 rounded-[3rem] relative">
-                                            <div className="absolute top-0 left-0 w-16 h-16 border-t-[6px] border-l-[6px] border-emerald-400 rounded-tl-[2rem]"></div>
-                                            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-[6px] border-r-[6px] border-emerald-400 rounded-br-[2rem]"></div>
-                                            <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent top-0 animate-scan shadow-[0_0_20px_emerald]"></div>
+                            {view === 'history' && (
+                                <div className="space-y-6 md:space-y-10 animate-in fade-in duration-700">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                        <h2 className="text-2xl md:text-3xl font-black text-slate-800">Log Aktivitas</h2>
+                                        <div className="relative w-full md:w-80 lg:w-96">
+                                            <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-200" size={18} />
+                                            <input placeholder="Cari Log..." onChange={e=>setSearchQuery(e.target.value)} className="w-full pl-12 pr-4 py-3 md:py-4 border border-slate-100 bg-white rounded-2xl md:rounded-3xl outline-none font-bold text-xs md:text-sm shadow-sm" />
                                         </div>
                                     </div>
-                                </div>
-
-                                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 space-y-6 text-left shadow-sm">
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 block">Input Plat (Manual)</label>
-                                        <input placeholder="BM 1234 XY" value={manualPlate} onChange={(e) => setManualPlate(e.target.value.toUpperCase())} className="w-full p-6 bg-slate-50 text-emerald-700 text-center rounded-[2rem] border-2 border-emerald-50 outline-none uppercase font-black text-2xl shadow-inner" />
-                                    </div>
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 block">Alasan / Keperluan</label>
-                                        <textarea placeholder="Contoh: Tamu Manager, Antar Pupuk..." value={keteranganScan} onChange={(e) => setKeteranganScan(e.target.value)} className="w-full p-6 bg-slate-50 text-slate-700 rounded-[2rem] border-2 border-emerald-50 outline-none font-bold text-sm h-24" />
-                                    </div>
-                                    <button onClick={() => processScan()} disabled={isLoading} className="w-full bg-emerald-600 text-white p-6 rounded-[2rem] font-black text-lg shadow-xl hover:bg-emerald-700 transition-all active:scale-95 flex items-center justify-center gap-4">
-                                        <Icon name="check-circle-2" />
-                                        <span>{isLoading ? 'MEMPROSES...' : 'PROSES LOG AKSES'}</span>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {}
-                        {view === 'history' && (
-                            <div className="space-y-10 animate-in fade-in duration-700">
-                                <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                                    <h2 className="text-3xl font-black text-slate-800">Log Aktivitas</h2>
-                                    <div className="relative w-full md:w-96">
-                                        <Icon name="search" className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-200" size={20} />
-                                        <input placeholder="Cari Log..." onChange={e=>setSearchQuery(e.target.value)} className="w-full pl-16 pr-8 py-5 border border-slate-100 bg-white rounded-3xl outline-none font-bold text-sm shadow-sm" />
-                                    </div>
-                                </div>
-                                <div className="bg-white rounded-[3.5rem] border border-slate-100 overflow-hidden shadow-sm">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left">
-                                            <thead className="bg-emerald-50/50">
-                                                <tr>
-                                                    <th className="p-8 text-[10px] font-black uppercase text-emerald-400 tracking-widest">Unit (Plat & Nama)</th>
-                                                    <th className="p-8 text-[10px] font-black uppercase text-emerald-400 tracking-widest text-center">Masuk</th>
-                                                    <th className="p-8 text-[10px] font-black uppercase text-emerald-400 tracking-widest text-center">Keluar</th>
-                                                    <th className="p-8 text-[10px] font-black uppercase text-emerald-400 tracking-widest">Keperluan</th>
-                                                    <th className="p-8 text-[10px] font-black uppercase text-emerald-400 tracking-widest text-right">Otorisasi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-50">
-                                                {logs.filter(l => l.platNomor.toLowerCase().includes(searchQuery.toLowerCase())).map(l => (
-                                                    <tr key={l.id} className="hover:bg-emerald-50/20 transition-all">
-                                                        <td className="p-8"><div className="font-black text-2xl text-slate-800 uppercase tracking-tighter leading-none">{l.platNomor}</div><div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{l.namaPemilik}</div></td>
-                                                        <td className="p-8 text-center"><span className="text-xs font-black text-slate-600 block">{l.timestampMasuk?.toDate().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</span><span className="text-[10px] font-bold text-slate-400 block mt-1">{l.timestampMasuk?.toDate().toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</span></td>
-                                                        <td className="p-8 text-center">{l.timestampKeluar ? (<><span className="text-xs font-black text-slate-600 block">{l.timestampKeluar.toDate().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</span><span className="text-[10px] font-bold text-slate-400 block mt-1">{l.timestampKeluar.toDate().toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</span></>) : <span className="text-[10px] font-black text-emerald-600 italic">Di Kebun</span>}</td>
-                                                        <td className="p-8 font-bold text-xs text-slate-500 uppercase">{l.keterangan || "Akses Rutin"}</td>
-                                                        <td className="p-8 text-right"><span className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase ${l.status === 'AKTIF' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-slate-100 text-slate-400'}`}>{l.status === 'AKTIF' ? 'AUTHORIZED' : 'FINISHED'}</span></td>
+                                    <div className="bg-white rounded-[1.5rem] md:rounded-[3.5rem] border border-slate-100 overflow-hidden shadow-sm">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left min-w-[600px]">
+                                                <thead className="bg-emerald-50/50">
+                                                    <tr>
+                                                        <th className="p-4 md:p-8 text-[8px] md:text-[10px] font-black uppercase text-emerald-400 tracking-widest">Unit</th>
+                                                        <th className="p-4 md:p-8 text-[8px] md:text-[10px] font-black uppercase text-emerald-400 tracking-widest text-center">Masuk</th>
+                                                        <th className="p-4 md:p-8 text-[8px] md:text-[10px] font-black uppercase text-emerald-400 tracking-widest text-center">Keluar</th>
+                                                        <th className="p-4 md:p-8 text-[8px] md:text-[10px] font-black uppercase text-emerald-400 tracking-widest">Keperluan</th>
+                                                        <th className="p-4 md:p-8 text-[8px] md:text-[10px] font-black uppercase text-emerald-400 tracking-widest text-right">Otorisasi</th>
                                                     </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50">
+                                                    {logs.filter(l => l.platNomor.toLowerCase().includes(searchQuery.toLowerCase())).map(l => (
+                                                        <tr key={l.id} className="hover:bg-emerald-50/20 transition-all">
+                                                            <td className="p-4 md:p-8"><div className="font-black text-lg md:text-2xl text-slate-800 uppercase tracking-tighter leading-none">{l.platNomor}</div><div className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{l.namaPemilik}</div></td>
+                                                            <td className="p-4 md:p-8 text-center"><span className="text-[10px] md:text-xs font-black text-slate-600 block">{l.timestampMasuk?.toDate().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</span><span className="text-[8px] md:text-[10px] font-bold text-slate-400 block mt-1">{l.timestampMasuk?.toDate().toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</span></td>
+                                                            <td className="p-4 md:p-8 text-center">{l.timestampKeluar ? (<><span className="text-[10px] md:text-xs font-black text-slate-600 block">{l.timestampKeluar.toDate().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</span><span className="text-[8px] md:text-[10px] font-bold text-slate-400 block mt-1">{l.timestampKeluar.toDate().toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</span></>) : <span className="text-[8px] md:text-[10px] font-black text-emerald-600 italic">Di Kebun</span>}</td>
+                                                            <td className="p-4 md:p-8 font-bold text-[10px] md:text-xs text-slate-500 uppercase">{l.keterangan || "Akses Rutin"}</td>
+                                                            <td className="p-4 md:p-8 text-right"><span className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black tracking-widest uppercase ${l.status === 'AKTIF' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-slate-100 text-slate-400'}`}>{l.status === 'AKTIF' ? 'AUTHORIZED' : 'FINISHED'}</span></td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {}
-                        {view === 'units' && (
-                            <div className="space-y-8 animate-in fade-in duration-700">
-                                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                                    <div className="text-left">
-                                        <h2 className="text-3xl font-black text-slate-800">Unit Terdaftar</h2>
-                                        <p className="text-emerald-600 font-bold text-xs uppercase tracking-widest">Database Sei Rokan</p>
+                            {view === 'units' && (
+                                <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                        <div className="text-left">
+                                            <h2 className="text-2xl md:text-3xl font-black text-slate-800">Unit Terdaftar</h2>
+                                            <p className="text-emerald-600 font-bold text-[8px] md:text-xs uppercase tracking-widest">Database Sei Rokan</p>
+                                        </div>
+                                        <div className="relative w-full md:w-80 lg:w-96">
+                                            <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-300" size={18} />
+                                            <input placeholder="Cari Plat / Nama..." onChange={e=>setSearchQuery(e.target.value)} className="w-full pl-12 pr-4 py-3 md:py-4 bg-white rounded-2xl md:rounded-3xl border border-slate-100 outline-none font-bold text-xs md:text-sm shadow-sm" />
+                                        </div>
                                     </div>
-                                    <div className="relative w-full md:w-96">
-                                        <Icon name="search" className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-300" size={20} />
-                                        <input placeholder="Cari Plat / Nama..." onChange={e=>setSearchQuery(e.target.value)} className="w-full pl-16 pr-8 py-5 bg-white rounded-3xl border border-slate-100 outline-none font-bold text-sm shadow-sm" />
-                                    </div>
-                                </div>
-                                <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left">
-                                            <thead className="bg-emerald-50/50">
-                                                <tr>
-                                                    <th className="p-8 text-[10px] font-black uppercase text-emerald-500 tracking-widest">Plat Nomor & Nama Unit</th>
-                                                    <th className="p-8 text-[10px] font-black uppercase text-emerald-500 tracking-widest text-center">Tanggal Daftar</th>
-                                                    <th className="p-8 text-[10px] font-black uppercase text-emerald-500 tracking-widest text-right">QR Cadangan</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-50">
-                                                {vehicles.filter(v => v.platNomor.toLowerCase().includes(searchQuery.toLowerCase()) || v.namaPemilik.toLowerCase().includes(searchQuery.toLowerCase())).map(v => (
-                                                    <tr key={v.id} className="hover:bg-emerald-50/20 transition-all">
-                                                        <td className="p-8"><div className="font-black text-2xl text-slate-800 uppercase tracking-tighter">{v.platNomor}</div><div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{v.namaPemilik}</div></td>
-                                                        <td className="p-8 text-center text-xs font-bold text-slate-500">{v.createdAt?.toDate().toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}</td>
-                                                        <td className="p-8 text-right"><button onClick={() => setSelectedQR(v)} className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm"><Icon name="qr-code" size={20} /></button></td>
+                                    <div className="bg-white rounded-[1.5rem] md:rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left min-w-[500px]">
+                                                <thead className="bg-emerald-50/50">
+                                                    <tr>
+                                                        <th className="p-4 md:p-8 text-[8px] md:text-[10px] font-black uppercase text-emerald-500 tracking-widest">Unit</th>
+                                                        <th className="p-4 md:p-8 text-[8px] md:text-[10px] font-black uppercase text-emerald-500 tracking-widest text-center">Terdaftar</th>
+                                                        <th className="p-4 md:p-8 text-[8px] md:text-[10px] font-black uppercase text-emerald-500 tracking-widest text-right">Aksi</th>
                                                     </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50">
+                                                    {vehicles.filter(v => v.platNomor.toLowerCase().includes(searchQuery.toLowerCase()) || v.namaPemilik.toLowerCase().includes(searchQuery.toLowerCase())).map(v => (
+                                                        <tr key={v.id} className="hover:bg-emerald-50/20 transition-all">
+                                                            <td className="p-4 md:p-8"><div className="font-black text-lg md:text-2xl text-slate-800 uppercase tracking-tighter">{v.platNomor}</div><div className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{v.namaPemilik}</div></td>
+                                                            <td className="p-4 md:p-8 text-center text-[10px] md:text-xs font-bold text-slate-500">{v.createdAt?.toDate().toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}</td>
+                                                            <td className="p-4 md:p-8 text-right"><button onClick={() => setSelectedQR(v)} className="p-3 md:p-4 bg-emerald-50 text-emerald-600 rounded-xl md:rounded-2xl hover:bg-emerald-600 hover:text-white transition-all"><Icon name="qr-code" size={18} /></button></td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </main>
                 </div>
             );
