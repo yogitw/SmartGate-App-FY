@@ -62,9 +62,11 @@
         // 🔥 GLOBAL ERROR LOGGER
         window.onerror = function(message, source, lineno, colno, error) {
             console.log("GLOBAL ERROR:", message, error);
+            // Mencegah crash total jika error ringan
+            return false;
         };
 
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useMemo } = React;
 
         // 🛡️ ERROR BOUNDARY COMPONENT
         class ErrorBoundary extends React.Component {
@@ -72,37 +74,14 @@
                 super(props);
                 this.state = { hasError: false };
             }
-
-            static getDerivedStateFromError() {
-                return { hasError: true };
-            }
-
-            componentDidCatch(error, info) {
-                console.error("ERROR APP:", error, info);
-            }
-
+            static getDerivedStateFromError() { return { hasError: true }; }
+            componentDidCatch(error, info) { console.error("ERROR APP:", error, info); }
             render() {
                 if (this.state.hasError) {
                     return (
-                        <div style={{
-                            height: '100vh', 
-                            display: 'flex', 
-                            flexDirection: 'column', 
-                            alignItems: 'center', 
-                            justifyContent: 'center', 
-                            background: '#0f172a',
-                            color: 'white',
-                            textAlign: 'center',
-                            padding: 20
-                        }}>
+                        <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyCenter: 'center', background: '#0f172a', color: 'white', textAlign: 'center', padding: 40}}>
                             <h2 className="text-2xl font-black mb-4">Terjadi Error Sistem</h2>
-                            <p className="text-slate-400 mb-8">Aplikasi mengalami kendala teknis tak terduga.</p>
-                            <button 
-                                onClick={() => window.location.reload()}
-                                className="bg-emerald-600 px-8 py-4 rounded-2xl font-black shadow-lg"
-                            >
-                                RELOAD APLIKASI
-                            </button>
+                            <button onClick={() => window.location.reload()} className="bg-emerald-600 px-8 py-4 rounded-2xl font-black">Reload Aplikasi</button>
                         </div>
                     );
                 }
@@ -122,28 +101,29 @@
         const MASTER_PASSWORD = "MASTER6";
 
         /**
-         * 🔥 FIX: Komponen Icon diperbarui untuk mencegah error removeChild.
-         * Menggunakan wrapper 'span' agar Lucide tidak merusak rekonsiliasi React.
+         * 🔥 FIX PERMANEN: Komponen Icon yang anti-crash.
+         * Menggunakan dangerouslySetInnerHTML agar React benar-benar mengabaikan apa pun di dalamnya.
          */
         const Icon = ({ name, size = 24, className = "" }) => {
-            const wrapperRef = useRef(null);
+            const containerRef = useRef(null);
+            const iconName = useMemo(() => name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase(), [name]);
+
             useEffect(() => {
-                if (window.lucide && wrapperRef.current) {
-                    const iconName = name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-                    // Bersihkan isi sebelumnya dan siapkan tag <i> untuk Lucide
-                    wrapperRef.current.innerHTML = `<i data-lucide="${iconName}"></i>`;
+                if (window.lucide && containerRef.current) {
                     window.lucide.createIcons({
-                        attrs: {
-                            width: size,
-                            height: size,
-                            class: className
-                        },
-                        root: wrapperRef.current
+                        attrs: { width: size, height: size, class: className },
+                        root: containerRef.current
                     });
                 }
-            }, [name, size, className]);
+            }, [iconName, size, className]);
 
-            return <span ref={wrapperRef} className="inline-flex items-center justify-center" style={{ minWidth: size, minHeight: size }}></span>;
+            // Gunakan tag tunggal dan biarkan Lucide mengisi isinya. 
+            // Kita bungkus i dengan dangerouslySetInnerHTML agar React tidak mencoba 'reconcile' isinya.
+            return (
+                <span ref={containerRef} className="inline-flex items-center justify-center" style={{ width: size, height: size }}>
+                    <i data-lucide={iconName} dangerouslySetInnerHTML={{ __html: '' }}></i>
+                </span>
+            );
         };
 
         const StatusToast = ({ message, type }) => (
@@ -191,13 +171,13 @@
                 }
             }, [view, userRole]);
 
-            // ✅ SESSION LEBIH AMAN (Ditingkatkan)
+            // ✅ SESSION LEBIH AMAN
             useEffect(() => {
                 const saved = localStorage.getItem('smartgate_session');
                 if (saved) {
                     try {
                         const data = JSON.parse(saved);
-                        if (!data.name || !data.role) throw new Error("Invalid Session");
+                        if (!data.name || !data.role) throw new Error();
                         setCurrentOfficer(data.name);
                         setUserRole(data.role);
                         setView('dashboard');
@@ -207,12 +187,7 @@
                 }
             }, []);
 
-            // 🔥 FIX SORT LOG (Mencegah Crash jika data logs kosong)
-            useEffect(() => {
-                if (!logs || logs.length === 0) return;
-                // Pengurutan sudah dilakukan di onSnapshot untuk performa optimal
-            }, [logs]);
-
+            // 1. Firebase Initialization
             useEffect(() => {
                 const checkStatus = setInterval(() => {
                     if (window.Firebase && window.lucide && window.Html5Qrcode) {
@@ -226,7 +201,7 @@
                     try {
                         const config = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : defaultFirebaseConfig;
                         if (!config.apiKey && typeof __app_id === 'undefined') {
-                            setConfigError("Konfigurasi Firebase belum lengkap.");
+                            setConfigError("Konfigurasi API Key tidak ditemukan.");
                             setIsReady(true);
                             return;
                         }
@@ -242,13 +217,14 @@
                             setIsReady(true);
                         });
                     } catch (err) {
-                        setConfigError("Gagal terhubung ke Database.");
+                        setConfigError("Koneksi Database Gagal.");
                         setIsReady(true);
                     }
                 };
                 return () => clearInterval(checkStatus);
             }, []);
 
+            // 2. Data Sync
             useEffect(() => {
                 if (!user || !window.Firebase) return;
                 const f = window.Firebase;
@@ -260,7 +236,7 @@
                 const unsubV = f.onSnapshot(vRef, (snap) => setVehicles(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
                 const unsubL = f.onSnapshot(lRef, (snap) => {
                     const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    // Sort berdasarkan waktu masuk (terbaru di atas)
+                    // 🔥 FIX SORT LOG (Diterapkan di sini agar lebih efisien)
                     setLogs(data.sort((a, b) => {
                         const tA = a.timestampMasuk?.seconds || 0;
                         const tB = b.timestampMasuk?.seconds || 0;
@@ -282,8 +258,13 @@
                     const scanner = scannerRef.current;
                     scannerRef.current = null;
                     try {
-                        if (scanner.getState() === 2) await scanner.stop();
-                        scanner.clear();
+                        if (scanner.getState() === 2) {
+                            await scanner.stop();
+                        }
+                        await scanner.clear();
+                        // Bersihkan DOM secara paksa untuk meyakinkan React
+                        const reader = document.getElementById("reader");
+                        if (reader) reader.innerHTML = "";
                     } catch (err) { console.warn(err); }
                 }
             };
@@ -300,9 +281,14 @@
                     try {
                         const html5QrCode = new Html5Qrcode("reader");
                         scannerRef.current = html5QrCode;
-                        await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (text) => { if (isMounted) processScan(text); }, () => {});
+                        await html5QrCode.start(
+                            { facingMode: "environment" },
+                            { fps: 10, qrbox: { width: 250, height: 250 } },
+                            (text) => { if (isMounted) processScan(text); },
+                            () => {}
+                        );
                     } catch (err) { console.error(err); }
-                }, 350);
+                }, 400);
                 return () => { isMounted = false; clearTimeout(timer); safelyClearScanner(); };
             }, [view, isReady]);
 
@@ -447,7 +433,7 @@
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Sandi</label>
                                 <div className="relative">
                                     <Icon name="Lock" className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-300" size={18} />
-                                    <input type={showPassword ? "text" : "password"} value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} placeholder="••••••••" required className="w-full pl-14 pr-14 py-5 bg-slate-50 border-2 border-slate-100 rounded-[2rem] font-bold outline-none focus:border-emerald-500 transition-all shadow-inner" />
+                                    <input type={showPassword ? "text" : "password"} value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} placeholder="••••••••" required className="w-full pl-14 pr-14 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] font-bold outline-none focus:border-emerald-500 transition-all shadow-inner" />
                                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-emerald-500"><Icon name={showPassword ? "EyeOff" : "Eye"} size={18} /></button>
                                 </div>
                             </div>
@@ -462,7 +448,7 @@
                     <aside className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white border-r border-slate-100 transition-transform duration-300 z-[60] p-8 flex flex-col shadow-2xl md:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
                         <div className="flex items-center gap-4 mb-12">
                             <div className="h-12 w-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg"><Icon name="ShieldCheck" size={28} /></div>
-                            <div><h1 className="text-xl font-extrabold text-slate-800 leading-tight">SmartGate</h1><p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none">Afdeling VI</p></div>
+                            <div><h1 className="text-xl font-extrabold text-slate-800 leading-tight">SmartGate</h1><p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none mt-1">Afdeling VI</p></div>
                         </div>
                         <nav className="space-y-1 flex-1 overflow-y-auto no-scrollbar">
                             {[
@@ -478,24 +464,28 @@
                             ))}
                             {userRole === 'master' && (
                                 <>
-                                    <div className="pt-8 pb-4 px-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Panel Admin</div>
+                                    <div className="pt-8 pb-4 px-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Administrator</div>
                                     <button onClick={async () => { if (view === 'scan') await safelyClearScanner(); setView('manage_officers'); setIsSidebarOpen(false); }} className={`flex items-center space-x-4 w-full p-4 rounded-xl font-bold text-sm transition-all ${view === 'manage_officers' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-500 hover:bg-slate-50'}`}>
-                                        <Icon name="Users" size={20} /> <span>Kelola Petugas</span>
+                                        <Icon name="Users" size={20} /> <span>Kelola Tim</span>
                                     </button>
                                 </>
                             )}
                         </nav>
                         <div className="mt-auto pt-6 space-y-4 border-t border-slate-50">
-                            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-3 p-4 bg-rose-600 text-white rounded-2xl font-black text-xs hover:bg-rose-700 active:scale-95 transition-all shadow-lg shadow-rose-200 uppercase tracking-widest"><Icon name="LogOut" size={16} /> KELUAR SISTEM</button>
-                            <div className={`p-4 rounded-2xl border flex items-center gap-3 ${userRole === 'master' ? 'bg-slate-900 border-slate-800 text-white shadow-lg' : 'bg-emerald-50 border-emerald-100'}`}>
-                                <div className={`h-10 w-10 rounded-full flex items-center justify-center font-black text-xs border shadow-sm ${userRole === 'master' ? 'bg-slate-800 text-white border-slate-700' : 'bg-white text-emerald-600 border-emerald-100'}`}>{userRole === 'master' ? 'MS' : 'VI'}</div>
-                                <div className="overflow-hidden"><p className={`text-[8px] font-bold uppercase tracking-widest mb-1 ${userRole === 'master' ? 'text-slate-400' : 'text-emerald-400'}`}>IDENTITAS AKTIF</p><p className={`text-[10px] font-bold truncate uppercase ${userRole === 'master' ? 'text-white' : 'text-emerald-900'}`}>{currentOfficer}</p></div>
+                            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-3 p-4 bg-rose-50 text-rose-600 rounded-2xl font-black text-xs hover:bg-rose-100 transition-all border border-rose-100 tracking-widest uppercase"><Icon name="LogOut" size={16} /> Keluar</button>
+                            <div className={`p-4 rounded-2xl border flex items-center gap-3 ${userRole === 'master' ? 'bg-slate-900 border-slate-800' : 'bg-emerald-50 border-emerald-100'}`}>
+                                <div className={`h-10 w-10 rounded-full flex items-center justify-center font-black text-xs border shadow-sm flex-shrink-0 ${userRole === 'master' ? 'bg-slate-800 text-white border-slate-700' : 'bg-white text-emerald-600 border-emerald-100'}`}>{userRole === 'master' ? 'MS' : 'VI'}</div>
+                                <div className="overflow-hidden"><p className={`text-[8px] font-black uppercase tracking-widest leading-none mb-1 ${userRole === 'master' ? 'text-slate-400' : 'text-emerald-400'}`}>PETUGAS JAGA</p><p className={`text-[10px] font-bold truncate uppercase ${userRole === 'master' ? 'text-white' : 'text-emerald-900'}`}>{currentOfficer}</p></div>
                             </div>
                         </div>
                     </aside>
 
                     <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-                        <header className="md:hidden bg-white border-b p-4 flex items-center justify-between sticky top-0 z-50"><button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl"><Icon name="Menu" size={24} /></button><h2 className="text-xs font-black text-emerald-600 uppercase tracking-widest leading-none">SmartGate VI</h2><div className="w-10"></div></header>
+                        <header className="md:hidden bg-white border-b p-4 flex items-center justify-between sticky top-0 z-50">
+                            <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl"><Icon name="Menu" size={24} /></button>
+                            <h2 className="text-xs font-black text-emerald-600 uppercase tracking-widest leading-none">SmartGate VI</h2>
+                            <div className="w-10"></div>
+                        </header>
                         <div className="flex-1 overflow-y-auto p-4 md:p-12 relative no-scrollbar">
                             {statusMsg && <StatusToast message={statusMsg.text} type={statusMsg.type} />}
                             {view === 'dashboard' && (
@@ -511,13 +501,13 @@
                                 </div>
                             )}
                             {view === 'history' && (
-                                <div className="space-y-8 animate-in fade-in duration-700">
-                                    <div className="flex flex-col md:flex-row justify-between items-center gap-6"><h2 className="text-4xl font-black text-slate-800">Log Aktivitas</h2><div className="relative w-full md:w-96"><Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input placeholder="Cari..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-14 pr-6 py-4 border border-slate-100 bg-white rounded-2xl outline-none" /></div></div>
+                                <div className="space-y-8 animate-in fade-in duration-700 pb-20">
+                                    <div className="flex flex-col md:flex-row justify-between items-center gap-6"><h2 className="text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">Log Aktivitas</h2><div className="relative w-full md:w-96"><Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input placeholder="Cari..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-14 pr-6 py-4 border border-slate-100 bg-white rounded-2xl outline-none" /></div></div>
                                     <div className="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm"><div className="overflow-x-auto"><table className="w-full text-left min-w-[1000px]"><thead className="bg-emerald-50/20"><tr><th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest">Unit</th><th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest">Waktu</th><th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest">Keperluan</th><th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest">Petugas</th><th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest text-right">Verifikasi</th></tr></thead><tbody className="divide-y divide-slate-50">{logs.filter(l => l.platNomor.toLowerCase().includes(searchQuery.toLowerCase())).map(l => (<tr key={l.id} className="hover:bg-emerald-50/5 transition-all group"><td className="p-8"><div className="font-black text-3xl text-slate-800 uppercase tracking-tighter leading-none">{l.platNomor}</div><div className="text-[10px] font-bold text-slate-400 uppercase mt-1">{l.namaPemilik}</div></td><td className="p-8"><div className="flex items-center gap-4">{(l.photo || l.photoExit) && <div onClick={() => setPreviewImage(l.photo || l.photoExit)} className="h-12 w-12 rounded-lg bg-slate-100 overflow-hidden cursor-zoom-in shadow-sm border border-white"><img src={l.photo || l.photoExit} className="w-full h-full object-cover" /></div>}<div><div className="font-black text-lg text-slate-700 tabular-nums">IN: {l.timestampMasuk?.toDate().toLocaleTimeString('id-ID')}</div>{l.timestampKeluar && <div className="font-black text-lg text-slate-700 tabular-nums">OUT: {l.timestampKeluar?.toDate().toLocaleTimeString('id-ID')}</div>}</div></div></td><td className="p-8"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{l.keterangan || "Akses Rutin"}</span></td><td className="p-8"><div className="text-[9px] font-black uppercase text-slate-600">IN: {l.petugasMasuk}</div>{l.petugasKeluar && <div className="text-[9px] font-black uppercase text-slate-600">OUT: {l.petugasKeluar}</div>}</td><td className="p-8 text-right"><span className="bg-emerald-600 text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md">Verified</span></td></tr>))}</tbody></table></div></div>
                                 </div>
                             )}
                             {view === 'scan' && (
-                                <div className="max-w-2xl mx-auto space-y-8 animate-in zoom-in-95">
+                                <div className="max-w-2xl mx-auto space-y-8 animate-in zoom-in-95 pb-20">
                                     <div className="flex bg-slate-100 p-1.5 rounded-[2rem] shadow-inner"><button onClick={() => setScanMode('masuk')} className={`flex-1 py-4 rounded-[1.8rem] font-black text-xs uppercase transition-all ${scanMode === 'masuk' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400'}`}>SCAN MASUK</button><button onClick={() => setScanMode('keluar')} className={`flex-1 py-4 rounded-[1.8rem] font-black text-xs uppercase transition-all ${scanMode === 'keluar' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-400'}`}>SCAN KELUAR</button></div>
                                     <div className="bg-slate-900 aspect-square rounded-[4rem] p-4 relative overflow-hidden border-[15px] border-white shadow-2xl"><div id="reader" className="w-full h-full rounded-[3rem] overflow-hidden"></div><div className="absolute inset-0 pointer-events-none p-12"><div className={`w-full h-1 opacity-50 shadow-[0_0_15px] animate-scan absolute top-0 left-0 ${scanMode === 'masuk' ? 'bg-emerald-400 shadow-emerald-400' : 'bg-rose-400 shadow-rose-400'}`}></div></div></div>
                                     <div className="bg-white p-8 rounded-[3.5rem] border border-slate-100 space-y-6 shadow-sm">{!capturedPhoto ? (<button onClick={() => fileInputRef.current?.click()} className="w-full h-40 border-4 border-dashed border-slate-100 rounded-[2rem] flex flex-col items-center justify-center gap-3 text-slate-400 hover:text-emerald-500 transition-all bg-slate-50/50"><Icon name="Camera" size={40} /> <span className="font-bold text-sm uppercase">Foto Bukti</span></button>) : (<div className="relative rounded-[2.5rem] overflow-hidden border-4 border-emerald-100 shadow-xl"><img src={capturedPhoto} className="w-full h-60 object-cover" /><button onClick={() => setCapturedPhoto(null)} className="absolute top-4 right-4 h-12 w-12 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg"><Icon name="Trash2" size={20} /></button></div>)}<input type="file" accept="image/*" capture="environment" hidden ref={fileInputRef} onChange={(e) => { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onloadend = () => setCapturedPhoto(reader.result); reader.readAsDataURL(file); } }} /><div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Input Plat</label><input placeholder="BM 1234 XY" value={manualPlate} onChange={e => setManualPlate(e.target.value.toUpperCase())} className={`w-full p-6 text-center rounded-[2rem] border-2 outline-none uppercase font-black text-3xl shadow-inner transition-all ${scanMode === 'masuk' ? 'bg-emerald-50 text-emerald-700 border-emerald-50' : 'bg-rose-50 text-rose-700 border-rose-50'}`} /></div><button onClick={() => processScan()} disabled={isLoading} className={`w-full p-8 rounded-[2rem] font-black text-xl shadow-xl transition-all active:scale-95 ${scanMode === 'masuk' ? 'bg-emerald-600 text-white' : 'bg-rose-500 text-white'}`}>{isLoading ? 'MEMPROSES...' : 'KONFIRMASI'}</button></div>
@@ -525,21 +515,31 @@
                             )}
                             {view === 'register' && (
                                 <div className="max-w-2xl mx-auto pb-20 animate-in slide-in-from-bottom-8">
-                                    {!registeredQR ? (<div className="bg-white p-14 rounded-[4rem] border border-slate-100 shadow-xl"><h2 className="text-3xl font-black text-slate-800 mb-8 uppercase tracking-tighter">Unit Baru</h2><form onSubmit={handleRegister} className="space-y-8"><div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Nomor Plat</label><input name="plat" required placeholder="BM 1234 XY" className="w-full p-6 bg-slate-50 text-emerald-700 rounded-[2rem] border-2 border-emerald-50 outline-none uppercase font-black text-2xl shadow-inner focus:border-emerald-500" /></div><div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Nama Pemilik / Supir</label><input name="nama" required placeholder="Nama Lengkap..." className="w-full p-6 bg-slate-50 rounded-[2rem] border-2 border-emerald-50 outline-none font-bold shadow-inner focus:border-emerald-500" /></div><button disabled={isLoading} className="w-full bg-emerald-600 text-white p-8 rounded-[2rem] font-black text-xl shadow-xl active:scale-95 transition-all">SIMPAN DATA</button></form></div>) : (<div className="bg-white p-12 rounded-[4rem] border-t-[15px] border-emerald-600 text-center space-y-10 shadow-2xl animate-in zoom-in-95"><img src={registeredQR.qrUrl} className="w-64 h-64 mx-auto rounded-3xl bg-slate-50 p-6 shadow-inner" /><h3 className="text-7xl font-black text-slate-900 uppercase tracking-tighter leading-none">{registeredQR.platNomor}</h3><p className="text-slate-500 font-extrabold uppercase tracking-widest text-sm">{registeredQR.namaPemilik}</p><div className="flex gap-4"><button onClick={() => window.print()} className="flex-1 bg-slate-900 text-white p-6 rounded-[2rem] font-black flex items-center justify-center gap-4 hover:bg-black transition-all shadow-xl"><Icon name="Printer" /> CETAK</button><button onClick={() => setRegisteredQR(null)} className="flex-1 bg-slate-100 text-slate-500 p-6 rounded-[2rem] font-black hover:bg-slate-200 transition-all">SELESAI</button></div></div>)}
+                                    {!registeredQR ? (<div className="bg-white p-14 rounded-[4rem] border border-slate-100 shadow-xl"><h2 className="text-3xl font-black text-slate-800 mb-8 uppercase tracking-tighter">Unit Baru</h2><form onSubmit={handleRegister} className="space-y-8"><div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Nomor Plat</label><input name="plat" required placeholder="BM 1234 XY" className="w-full p-6 bg-slate-50 text-emerald-700 rounded-[2rem] border-2 border-emerald-50 outline-none uppercase font-black text-2xl shadow-inner focus:border-emerald-500" /></div><div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Nama Pemilik / Supir</label><input name="nama" required placeholder="Nama Lengkap..." className="w-full p-6 bg-slate-50 rounded-[2rem] border-2 border-emerald-50 outline-none font-black text-xl shadow-inner uppercase transition-all" /></div><button disabled={isLoading} className="w-full bg-emerald-600 text-white p-8 rounded-[2.5rem] font-black text-xl shadow-xl active:scale-95 transition-all">SIMPAN DATA</button></form></div>) : (<div className="bg-white p-12 rounded-[4rem] border-t-[15px] border-emerald-600 text-center space-y-10 shadow-2xl animate-in zoom-in-95"><img src={registeredQR.qrUrl} className="w-64 h-64 mx-auto rounded-3xl bg-slate-50 p-6 shadow-inner" /><h3 className="text-7xl font-black text-slate-900 uppercase tracking-tighter leading-none">{registeredQR.platNomor}</h3><p className="text-slate-500 font-extrabold uppercase tracking-widest text-sm">{registeredQR.namaPemilik}</p><div className="flex gap-4"><button onClick={() => window.print()} className="flex-1 bg-slate-900 text-white p-6 rounded-[2rem] font-black flex items-center justify-center gap-4 hover:bg-black transition-all shadow-xl"><Icon name="Printer" /> CETAK</button><button onClick={() => setRegisteredQR(null)} className="flex-1 bg-slate-100 text-slate-500 p-6 rounded-[2rem] font-black hover:bg-slate-200 transition-all">SELESAI</button></div></div>)}
                                 </div>
                             )}
                             {view === 'units' && (
-                                <div className="space-y-8 animate-in fade-in duration-700"><div className="flex flex-col md:flex-row justify-between items-center gap-6"><h2 className="text-4xl font-black text-slate-800 tracking-tighter">Database Unit</h2><div className="relative w-full md:w-96"><Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input placeholder="Cari..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-14 pr-6 py-4 border border-slate-100 bg-white rounded-2xl outline-none font-bold text-sm shadow-sm" /></div></div><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{vehicles.filter(v => v.platNomor.toLowerCase().includes(searchQuery.toLowerCase())).map(v => (<div key={v.id} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden"><div className="flex justify-between items-start mb-6"><div className="h-12 w-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><Icon name="Car" size={20} /></div><button onClick={() => setSelectedQR(v)} className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all"><Icon name="Printer" size={16} /></button></div><h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter leading-none mb-1">{v.platNomor}</h3><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{v.namaPemilik}</p><div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between"><div className="flex items-center gap-2"><span className={`h-2.5 w-2.5 rounded-full ${v.status === 'di_dalam' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-200'}`}></span><span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{v.status === 'di_dalam' ? 'DI AREA' : 'DI LUAR'}</span></div></div></div>))}</div></div>
+                                <div className="space-y-8 animate-in fade-in duration-700 pb-20"><div className="flex flex-col md:flex-row justify-between items-center gap-6"><h2 className="text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">Database Unit</h2><div className="relative w-full md:w-96"><Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input placeholder="Cari..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-14 pr-6 py-4 border border-slate-100 bg-white rounded-2xl outline-none font-bold text-sm shadow-sm" /></div></div><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{vehicles.filter(v => v.platNomor.toLowerCase().includes(searchQuery.toLowerCase())).map(v => (<div key={v.id} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden flex flex-col items-center text-center"><div className="flex justify-between items-start w-full mb-4"><div className="h-12 w-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><Icon name="Car" size={20} /></div><button onClick={() => setSelectedQR(v)} className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all"><Icon name="Printer" size={16} /></button></div><h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter leading-none mb-1">{v.platNomor}</h3><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{v.namaPemilik}</p><div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between w-full"><div className="flex items-center gap-2"><span className={`h-2.5 w-2.5 rounded-full ${v.status === 'di_dalam' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-200'}`}></span><span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{v.status === 'di_dalam' ? 'DI AREA' : 'DI LUAR'}</span></div></div></div>))}</div></div>
                             )}
                             {view === 'manage_officers' && userRole === 'master' && (
-                                <div className="space-y-12 animate-in slide-in-from-bottom-8"><div className="flex flex-col md:flex-row justify-between items-center gap-6"><h2 className="text-4xl font-black text-slate-800 tracking-tighter">Kelola Tim Jaga</h2><div className="relative w-full md:w-80"><Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input placeholder="Cari..." value={officerSearch} onChange={e => setOfficerSearch(e.target.value)} className="w-full pl-14 pr-6 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm shadow-sm outline-none" /></div></div><div className="grid grid-cols-1 lg:grid-cols-3 gap-8"><div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl space-y-8 h-fit lg:sticky lg:top-12"><h3 className="text-xl font-black uppercase tracking-tighter">Tambah Personel</h3><form onSubmit={addOfficer} className="space-y-6"><input name="name" required placeholder="NAMA LENGKAP" className="w-full p-5 bg-slate-50 rounded-2xl font-bold border-2 border-transparent focus:border-emerald-500 outline-none uppercase shadow-inner" /><input name="pass" type="password" required placeholder="KATA SANDI" className="w-full p-5 bg-slate-50 rounded-2xl font-bold border-2 border-transparent focus:border-emerald-500 outline-none shadow-inner" /><button type="submit" disabled={isLoading} className="w-full bg-emerald-600 text-white p-5 rounded-2xl font-black shadow-lg">DAFTARKAN</button></form></div><div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">{allOfficers.filter(o => o.name.toLowerCase().includes(officerSearch.toLowerCase())).map(off => (<div key={off.id} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between"><div className="flex items-center gap-4"><div className="h-14 w-14 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center font-black text-xs uppercase">{off.name.charAt(0)}</div><div><p className="font-black text-slate-800 uppercase leading-none">{off.name}</p><p className="text-[9px] font-bold text-slate-400 uppercase mt-1">Registrasi: {off.createdAt?.toDate().toLocaleDateString()}</p></div></div><button onClick={() => { if(window.confirm(`Hapus akun ${off.name}?`)) deleteOfficer(off.id); }} className="p-3 text-slate-200 hover:text-rose-600 transition-all"><Icon name="Trash2" size={18} /></button></div>))}</div></div></div>
+                                <div className="space-y-12 animate-in slide-in-from-bottom-8 pb-20"><div className="flex flex-col md:flex-row justify-between items-center gap-6"><h2 className="text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">Kelola Tim Jaga</h2><div className="relative w-full md:w-80"><Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input placeholder="Cari..." value={officerSearch} onChange={e => setOfficerSearch(e.target.value)} className="w-full pl-14 pr-6 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm shadow-sm outline-none" /></div></div><div className="grid grid-cols-1 lg:grid-cols-3 gap-8"><div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl space-y-8 h-fit lg:sticky lg:top-12"><h3 className="text-xl font-black uppercase tracking-tighter">Tambah Personel</h3><form onSubmit={addOfficer} className="space-y-6"><input name="name" required placeholder="NAMA LENGKAP" className="w-full p-5 bg-slate-50 rounded-2xl font-bold border-2 border-transparent focus:border-emerald-500 outline-none uppercase shadow-inner" /><input name="pass" type="password" required placeholder="KATA SANDI" className="w-full p-5 bg-slate-50 rounded-2xl font-bold border-2 border-transparent focus:border-emerald-500 outline-none shadow-inner" /><button type="submit" disabled={isLoading} className="w-full bg-emerald-600 text-white p-5 rounded-2xl font-black shadow-lg">DAFTARKAN</button></form></div><div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">{allOfficers.filter(o => o.name.toLowerCase().includes(officerSearch.toLowerCase())).map(off => (<div key={off.id} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-emerald-200 transition-all"><div className="flex items-center gap-4"><div className="h-14 w-14 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center font-black text-xs uppercase">{off.name.charAt(0)}</div><div><p className="font-black text-slate-800 uppercase leading-none">{off.name}</p><p className="text-[9px] font-bold text-slate-400 uppercase mt-1">Registrasi: {off.createdAt?.toDate().toLocaleDateString()}</p></div></div><button onClick={() => { if(window.confirm(`Hapus akun ${off.name}?`)) deleteOfficer(off.id); }} className="p-3 text-slate-200 hover:text-rose-600 transition-all"><Icon name="Trash2" size={18} /></button></div>))}</div></div></div>
                             )}
                         </div>
                     </main>
 
                     {previewImage && (<div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm" onClick={() => setPreviewImage(null)}><button onClick={() => setPreviewImage(null)} className="absolute top-8 right-8 text-white/50 hover:text-white transition-all"><Icon name="X" size={40}/></button><img src={previewImage} className="max-h-[80vh] w-auto rounded-3xl shadow-2xl border-4 border-white/10" /></div>)}
-                    {selectedQR && (<div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md"><div className="bg-white w-full max-sm rounded-[3.5rem] p-10 text-center shadow-2xl relative animate-in zoom-in-95 text-slate-900"><button onClick={() => setSelectedQR(null)} className="absolute top-8 right-8 text-slate-300 hover:text-rose-500 transition-colors"><Icon name="X" size={24} /></button><img src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}`} className="w-48 h-48 mx-auto mb-6 bg-slate-50 p-4 rounded-3xl shadow-inner" /><h3 className="text-6xl font-black text-slate-900 tracking-tighter leading-none mb-12 uppercase">{selectedQR.platNomor}</h3><button onClick={() => { setRegisteredQR({ ...selectedQR, qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}` }); setSelectedQR(null); setTimeout(() => window.print(), 100); }} className="w-full bg-slate-900 text-white p-5 rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl uppercase tracking-widest"><Icon name="Printer" size={18} /> CETAK ULANG</button></div></div>)}
-                    <div className="print-only hidden">{registeredQR && (<div className="flex flex-col items-center justify-center border-2 border-black p-10 w-[100mm] h-[100mm] text-center bg-white text-black"><h1 className="m-0 text-sm font-black uppercase">AFDELING VI SEI ROKAN</h1><img src={registeredQR.qrUrl} className="w-[50mm] h-[50mm] my-4" /><h2 className="m-0 text-4xl font-black uppercase tracking-tighter">{registeredQR.platNomor}</h2><p className="mt-2 text-xs font-bold uppercase">{registeredQR.namaPemilik}</p></div>)}</div>
+                    {selectedQR && (<div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm transition-all animate-in fade-in" onClick={() => setSelectedQR(null)}><div className="bg-white w-full max-w-sm rounded-[4rem] p-12 text-center shadow-2xl relative animate-in zoom-in-95" onClick={e => e.stopPropagation()}><button onClick={() => setSelectedQR(null)} className="absolute top-8 right-8 text-slate-300 hover:text-rose-500 transition-colors"><Icon name="X" size={28} /></button><div className="bg-slate-50 p-6 rounded-[2.5rem] inline-block mb-8 shadow-inner"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}`} className="w-44 h-44 mx-auto rounded-xl" alt="QR" /></div><h3 className="text-6xl font-black text-slate-900 tracking-tighter leading-none mb-3 uppercase">{selectedQR.platNomor}</h3><p className="text-emerald-600 font-black uppercase text-[10px] tracking-[0.3em] mb-12 leading-none">{selectedQR.namaPemilik}</p><button onClick={() => { setRegisteredQR({ ...selectedQR, qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}` }); setSelectedQR(null); setTimeout(() => window.print(), 200); }} className="w-full bg-slate-900 text-white p-6 rounded-[2rem] font-black flex items-center justify-center gap-4 shadow-2xl active:scale-95 transition-all uppercase tracking-widest"><Icon name="Printer" size={22} /> CETAK STIKER</button></div></div>)}
+                    
+                    <div className="print-only hidden">
+                        {registeredQR && (
+                            <div className="flex flex-col items-center justify-center border-2 border-black p-10 w-[100mm] h-[100mm] text-center bg-white text-black">
+                                <h1 className="m-0 text-sm font-black uppercase">AFDELING VI SEI ROKAN</h1>
+                                <img src={registeredQR.qrUrl} className="w-[50mm] h-[50mm] my-4" />
+                                <h2 className="m-0 text-4xl font-black uppercase tracking-tighter">{registeredQR.platNomor}</h2>
+                                <p className="mt-2 text-xs font-bold uppercase">{registeredQR.namaPemilik}</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             );
         }
