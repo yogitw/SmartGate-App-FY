@@ -56,21 +56,24 @@ import {
 } from 'lucide-react';
 
 /**
- * KONFIGURASI FIREBASE
- * Mengambil konfigurasi otomatis dari sistem jika tersedia (Canvas), 
- * atau menggunakan fallback manual untuk hosting mandiri (GitHub).
+ * PENTING: KONFIGURASI FIREBASE
+ * 1. Saat di Canvas: Aplikasi menggunakan __firebase_config otomatis.
+ * 2. Saat di GitHub Pages: Anda WAJIB mengisi apiKey di bawah ini dengan 
+ * kunci yang ada di Firebase Console Anda (Project Settings).
  */
+const manualFirebaseConfig = {
+  apiKey: "AIzaSyBvXN-verMsJQQC77p1I7Abc5vOAScPR2k",
+  authDomain: "smartgate-app-fy.firebaseapp.com",
+  projectId: "smartgate-app-fy",
+  storageBucket: "smartgate-app-fy.firebasestorage.app",
+  messagingSenderId: "558199352587",
+  appId: "1:558199352587:web:68b3217cbc0ba9e960460e",
+  measurementId: "G-R88TK7L688"
+};
+
 const firebaseConfig = typeof __firebase_config !== 'undefined' 
   ? JSON.parse(__firebase_config) 
-  : {
-      // CATATAN: Untuk GitHub Pages, ganti string kosong di bawah dengan API Key asli dari Firebase Console Anda.
-      apiKey: "", 
-      authDomain: "smartgate-app-fy.firebaseapp.com",
-      projectId: "smartgate-app-fy",
-      storageBucket: "smartgate-app-fy.firebasestorage.app",
-      messagingSenderId: "558199352587",
-      appId: "1:558199352587:web:68b3217cbc0ba9e960460e"
-    };
+  : manualFirebaseConfig;
 
 // Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
@@ -117,7 +120,7 @@ export default function App() {
   const transitionLock = useRef(false);
   const fileInputRef = useRef(null);
 
-  // 1. Auth Listener & Initial Login (Sesuai Aturan MANDATORY)
+  // 1. Auth Listener & Initial Login
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -150,7 +153,7 @@ export default function App() {
     }
   }, []);
 
-  // 3. Real-time Firestore Sync (Hanya berjalan setelah Auth selesai)
+  // 3. Real-time Firestore Sync
   useEffect(() => {
     if (!user) return;
 
@@ -248,7 +251,7 @@ export default function App() {
         showStatus("Kredensial Petugas Salah!", "error");
       }
     } catch (err) {
-      showStatus("Kesalahan Koneksi Database", "error");
+      showStatus("Gagal Login: Cek Konfigurasi Firebase Anda", "error");
     } finally {
       setIsLoading(false);
     }
@@ -332,7 +335,7 @@ export default function App() {
       }
       setManualPlate(''); setKeteranganScan(''); setCapturedPhoto(null); setView('dashboard');
     } catch (err) { 
-      showStatus("Gagal memproses", "error"); 
+      showStatus("Gagal memproses akses", "error"); 
     } finally { 
       setIsLoading(false); 
     }
@@ -351,7 +354,7 @@ export default function App() {
       });
       setRegisteredQR({ platNomor: plat, namaPemilik: nama, qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${plat}` });
       showStatus("Unit Berhasil Terdaftar!");
-    } catch (err) { showStatus("Gagal daftar", "error"); } finally { setIsLoading(false); }
+    } catch (err) { showStatus("Gagal mendaftar", "error"); } finally { setIsLoading(false); }
   };
 
   const addOfficer = async (e) => {
@@ -371,7 +374,7 @@ export default function App() {
       await addDoc(oRef, { name, password: pass, createdAt: Timestamp.now() });
       showStatus("Petugas Ditambahkan");
       e.target.reset();
-    } catch (err) { showStatus("Gagal tambah", "error"); } finally { setIsLoading(false); }
+    } catch (err) { showStatus("Gagal menambah", "error"); } finally { setIsLoading(false); }
   };
 
   const deleteOfficer = async (id) => {
@@ -379,10 +382,10 @@ export default function App() {
     try {
       await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'officers', id));
       showStatus("Akun Dihapus");
-    } catch (err) { showStatus("Gagal hapus", "error"); }
+    } catch (err) { showStatus("Gagal menghapus", "error"); }
   };
 
-  // Login View
+  // UI Login
   if (view === 'login') {
     return (
       <div className="min-h-screen bg-emerald-600 flex items-center justify-center p-6 font-sans">
@@ -417,8 +420,8 @@ export default function App() {
               <span>{isLoading ? 'MEMVERIFIKASI...' : 'MASUK'}</span>
             </button>
           </form>
-          <div className="pt-4">
-            <p className="text-[9px] text-slate-300 uppercase tracking-widest font-bold">V1.0 - Hosting Edition</p>
+          <div className="pt-4 border-t border-slate-50">
+            <p className="text-[9px] text-slate-300 uppercase tracking-widest font-bold">SmartGate Security System V1.0</p>
           </div>
         </div>
       </div>
