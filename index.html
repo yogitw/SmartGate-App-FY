@@ -62,7 +62,6 @@
         // 🔥 GLOBAL ERROR LOGGER
         window.onerror = function(message, source, lineno, colno, error) {
             console.log("GLOBAL ERROR:", message, error);
-            // Mencegah crash total jika error ringan
             return false;
         };
 
@@ -79,9 +78,9 @@
             render() {
                 if (this.state.hasError) {
                     return (
-                        <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyCenter: 'center', background: '#0f172a', color: 'white', textAlign: 'center', padding: 40}}>
+                        <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0f172a', color: 'white', textAlign: 'center', padding: 40}}>
                             <h2 className="text-2xl font-black mb-4">Terjadi Error Sistem</h2>
-                            <button onClick={() => window.location.reload()} className="bg-emerald-600 px-8 py-4 rounded-2xl font-black">Reload Aplikasi</button>
+                            <button onClick={() => window.location.reload()} className="bg-emerald-600 px-8 py-4 rounded-2xl font-black shadow-lg">Reload Aplikasi</button>
                         </div>
                     );
                 }
@@ -89,14 +88,17 @@
             }
         }
 
+        /**
+         * ✅ CONFIG FIREBASE TERBARU
+         */
         const defaultFirebaseConfig = {
-             apiKey: "AIzaSyBvXN-verMsJQQC77p1I7Abc5vOAScPR2k",
-  authDomain: "smartgate-app-fy.firebaseapp.com",
-  projectId: "smartgate-app-fy",
-  storageBucket: "smartgate-app-fy.firebasestorage.app",
-  messagingSenderId: "558199352587",
-  appId: "1:558199352587:web:68b3217cbc0ba9e960460e",
-  measurementId: "G-R88TK7L688"
+            apiKey: "AIzaSyBvXN-verMsJQQC77p1I7Abc5vOAScPR2k",
+            authDomain: "smartgate-app-fy.firebaseapp.com",
+            projectId: "smartgate-app-fy",
+            storageBucket: "smartgate-app-fy.firebasestorage.app",
+            messagingSenderId: "558199352587",
+            appId: "1:558199352587:web:68b3217cbc0ba9e960460e",
+            measurementId: "G-R88TK7L688"
         };
 
         const MASTER_PASSWORD = "MASTER6";
@@ -118,8 +120,6 @@
                 }
             }, [iconName, size, className]);
 
-            // Gunakan tag tunggal dan biarkan Lucide mengisi isinya. 
-            // Kita bungkus i dengan dangerouslySetInnerHTML agar React tidak mencoba 'reconcile' isinya.
             return (
                 <span ref={containerRef} className="inline-flex items-center justify-center" style={{ width: size, height: size }}>
                     <i data-lucide={iconName} dangerouslySetInnerHTML={{ __html: '' }}></i>
@@ -165,14 +165,14 @@
             const fileInputRef = useRef(null);
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'smartgate-sei-rokan-v1';
 
-            // ✅ PROTEKSI ROLE (ANTI MASUK ADMIN)
+            // ✅ PROTEKSI ROLE
             useEffect(() => {
                 if (view === 'manage_officers' && userRole !== 'master') {
                     setView('dashboard');
                 }
             }, [view, userRole]);
 
-            // ✅ SESSION LEBIH AMAN
+            // ✅ SESSION HANDLING
             useEffect(() => {
                 const saved = localStorage.getItem('smartgate_session');
                 if (saved) {
@@ -201,24 +201,22 @@
                     const f = window.Firebase;
                     try {
                         const config = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : defaultFirebaseConfig;
-                        if (!config.apiKey && typeof __app_id === 'undefined') {
-                            setConfigError("Konfigurasi API Key tidak ditemukan.");
-                            setIsReady(true);
-                            return;
-                        }
                         const fbApp = f.initializeApp(config);
                         const auth = f.getAuth(fbApp);
+                        
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                             await f.signInWithCustomToken(auth, __initial_auth_token);
                         } else {
                             await f.signInAnonymously(auth);
                         }
+                        
                         f.onAuthStateChanged(auth, (u) => {
                             setUser(u);
                             setIsReady(true);
                         });
                     } catch (err) {
-                        setConfigError("Koneksi Database Gagal.");
+                        console.error(err);
+                        setConfigError("Koneksi Database Gagal. Pastikan API Key benar.");
                         setIsReady(true);
                     }
                 };
@@ -237,13 +235,13 @@
                 const unsubV = f.onSnapshot(vRef, (snap) => setVehicles(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
                 const unsubL = f.onSnapshot(lRef, (snap) => {
                     const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    // 🔥 FIX SORT LOG (Diterapkan di sini agar lebih efisien)
                     setLogs(data.sort((a, b) => {
                         const tA = a.timestampMasuk?.seconds || 0;
                         const tB = b.timestampMasuk?.seconds || 0;
                         return tB - tA;
                     }));
-                });
+                }, (err) => console.error("Log Error:", err));
+                
                 const unsubO = f.onSnapshot(oRef, (snap) => setAllOfficers(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
 
                 return () => { unsubV(); unsubL(); unsubO(); };
@@ -259,11 +257,8 @@
                     const scanner = scannerRef.current;
                     scannerRef.current = null;
                     try {
-                        if (scanner.getState() === 2) {
-                            await scanner.stop();
-                        }
+                        if (scanner.getState() === 2) await scanner.stop();
                         await scanner.clear();
-                        // Bersihkan DOM secara paksa untuk meyakinkan React
                         const reader = document.getElementById("reader");
                         if (reader) reader.innerHTML = "";
                     } catch (err) { console.warn(err); }
@@ -413,7 +408,7 @@
 
             if (!isReady) return <div className="min-h-screen bg-slate-900 flex items-center justify-center"><div className="flex flex-col items-center gap-4"><div className="loader"></div><p className="font-bold text-emerald-500 uppercase tracking-widest text-[10px]">Menyiapkan Tampilan...</p></div></div>;
 
-            if (configError) return <div className="min-h-screen bg-rose-600 flex items-center justify-center p-8"><div className="bg-white p-10 rounded-[3rem] text-center max-w-md shadow-2xl space-y-6"><Icon name="AlertTriangle" size={64} className="text-rose-500 mx-auto" /><h2 className="text-2xl font-black text-slate-800 leading-none">Kesalahan Konfigurasi</h2><p className="text-slate-500 text-sm font-medium">{configError}</p><button onClick={() => window.location.reload()} className="w-full bg-rose-500 text-white p-4 rounded-2xl font-black">COBA LAGI</button></div></div>;
+            if (configError) return <div className="min-h-screen bg-rose-600 flex items-center justify-center p-8"><div className="bg-white p-10 rounded-[3rem] text-center max-w-md shadow-2xl space-y-6"><Icon name="AlertTriangle" size={64} className="text-rose-500 mx-auto" /><h2 className="text-2xl font-black text-slate-800 leading-none">Kesalahan Konfigurasi</h2><p className="text-slate-500 text-sm font-medium">{configError}</p><button onClick={() => window.location.reload()} className="w-full bg-rose-500 text-white p-4 rounded-2xl font-black shadow-lg">COBA LAGI</button></div></div>;
 
             if (view === 'login') return (
                 <div className="min-h-screen bg-emerald-600 flex items-center justify-center p-6 text-slate-900">
@@ -427,7 +422,7 @@
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">ID Petugas</label>
                                 <div className="relative">
                                     <Icon name="User" className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-300" size={18} />
-                                    <input type="text" value={officerNameInput} onChange={(e) => setOfficerNameInput(e.target.value)} placeholder="Username..." required className="w-full pl-14 pr-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-[2rem] font-bold outline-none focus:border-emerald-500 transition-all shadow-inner" />
+                                    <input type="text" value={officerNameInput} onChange={(e) => setOfficerNameInput(e.target.value)} placeholder="Username..." required className="w-full pl-14 pr-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-[2rem] font-bold outline-none focus:border-emerald-500 transition-all shadow-inner uppercase" />
                                 </div>
                             </div>
                             <div className="space-y-2">
@@ -472,7 +467,7 @@
                                 </>
                             )}
                         </nav>
-                        <div className="mt-auto pt-6 space-y-4 border-t border-slate-50">
+                        <div className="mt-auto pt-6 space-y-4">
                             <button onClick={handleLogout} className="w-full flex items-center justify-center gap-3 p-4 bg-rose-50 text-rose-600 rounded-2xl font-black text-xs hover:bg-rose-100 transition-all border border-rose-100 tracking-widest uppercase"><Icon name="LogOut" size={16} /> Keluar</button>
                             <div className={`p-4 rounded-2xl border flex items-center gap-3 ${userRole === 'master' ? 'bg-slate-900 border-slate-800' : 'bg-emerald-50 border-emerald-100'}`}>
                                 <div className={`h-10 w-10 rounded-full flex items-center justify-center font-black text-xs border shadow-sm flex-shrink-0 ${userRole === 'master' ? 'bg-slate-800 text-white border-slate-700' : 'bg-white text-emerald-600 border-emerald-100'}`}>{userRole === 'master' ? 'MS' : 'VI'}</div>
@@ -482,18 +477,22 @@
                     </aside>
 
                     <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-                        <header className="md:hidden bg-white border-b p-4 flex items-center justify-between sticky top-0 z-50">
-                            <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl"><Icon name="Menu" size={24} /></button>
+                        <header className="md:hidden bg-white border-b p-4 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+                            <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"><Icon name="Menu" size={24} /></button>
                             <h2 className="text-xs font-black text-emerald-600 uppercase tracking-widest leading-none">SmartGate VI</h2>
                             <div className="w-10"></div>
                         </header>
                         <div className="flex-1 overflow-y-auto p-4 md:p-12 relative no-scrollbar">
                             {statusMsg && <StatusToast message={statusMsg.text} type={statusMsg.type} />}
                             {view === 'dashboard' && (
-                                <div className="space-y-8 animate-in fade-in duration-500">
+                                <div className="space-y-8 animate-in fade-in duration-500 pb-12">
                                     <div className="bg-emerald-600 p-8 md:p-20 rounded-[4rem] text-white shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
-                                        {userRole === 'master' && (<button onClick={handleLogout} className="absolute top-8 right-8 bg-white/10 hover:bg-white/20 p-4 rounded-full backdrop-blur-md border border-white/20 transition-all z-20 group"><Icon name="LogOut" size={24} className="text-white group-hover:text-rose-200" /></button>)}
-                                        <div className="relative z-10 space-y-6"><div className="bg-emerald-500/50 backdrop-blur-sm px-4 py-2 rounded-full inline-flex items-center gap-2 border border-emerald-400/50 text-[10px] font-black uppercase"><Icon name="UserCheck" size={14} /> <span>{currentOfficer}</span></div><h2 className="text-3xl md:text-7xl font-black tracking-tighter uppercase leading-none">KEBUN <br/><span className="text-emerald-200">SEI ROKAN</span></h2><div className="text-5xl md:text-9xl font-black tabular-nums drop-shadow-2xl">{currentTime.toLocaleTimeString('id-ID')}</div><p className="text-[10px] md:text-base font-bold uppercase tracking-widest opacity-70">SECURITY SYSTEM AFDELING VI</p></div>
+                                        <div className="relative z-10 space-y-6">
+                                            <div className="bg-emerald-500/50 backdrop-blur-sm px-5 py-2 rounded-full inline-flex items-center gap-3 border border-emerald-400/50"><Icon name="UserCheck" size={14} /> <span className="text-[10px] font-black uppercase tracking-widest">{currentOfficer} • Pos VI</span></div>
+                                            <h2 className="text-3xl md:text-7xl font-black tracking-tighter uppercase leading-none">KEBUN <br/><span className="text-emerald-200">SEI ROKAN</span></h2>
+                                            <div className="text-5xl md:text-9xl font-black tabular-nums drop-shadow-2xl">{currentTime.toLocaleTimeString('id-ID')}</div>
+                                            <p className="text-[10px] md:text-base font-bold uppercase tracking-widest opacity-70">Security Gate Control VI</p>
+                                        </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <button onClick={() => { setScanMode('masuk'); setView('scan'); }} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:border-emerald-500 transition-all text-left"><div className="h-20 w-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><Icon name="ArrowDownLeft" size={32}/></div><div><h3 className="font-black text-2xl text-slate-800 uppercase tracking-tighter leading-none">Scan Masuk</h3><p className="text-slate-400 text-xs font-bold uppercase mt-1">Otorisasi Unit Masuk</p></div></button>
@@ -516,11 +515,11 @@
                             )}
                             {view === 'register' && (
                                 <div className="max-w-2xl mx-auto pb-20 animate-in slide-in-from-bottom-8">
-                                    {!registeredQR ? (<div className="bg-white p-14 rounded-[4rem] border border-slate-100 shadow-xl"><h2 className="text-3xl font-black text-slate-800 mb-8 uppercase tracking-tighter">Unit Baru</h2><form onSubmit={handleRegister} className="space-y-8"><div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Nomor Plat</label><input name="plat" required placeholder="BM 1234 XY" className="w-full p-6 bg-slate-50 text-emerald-700 rounded-[2rem] border-2 border-emerald-50 outline-none uppercase font-black text-2xl shadow-inner focus:border-emerald-500" /></div><div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Nama Pemilik / Supir</label><input name="nama" required placeholder="Nama Lengkap..." className="w-full p-6 bg-slate-50 rounded-[2rem] border-2 border-emerald-50 outline-none font-black text-xl shadow-inner uppercase transition-all" /></div><button disabled={isLoading} className="w-full bg-emerald-600 text-white p-8 rounded-[2.5rem] font-black text-xl shadow-xl active:scale-95 transition-all">SIMPAN DATA</button></form></div>) : (<div className="bg-white p-12 rounded-[4rem] border-t-[15px] border-emerald-600 text-center space-y-10 shadow-2xl animate-in zoom-in-95"><img src={registeredQR.qrUrl} className="w-64 h-64 mx-auto rounded-3xl bg-slate-50 p-6 shadow-inner" /><h3 className="text-7xl font-black text-slate-900 uppercase tracking-tighter leading-none">{registeredQR.platNomor}</h3><p className="text-slate-500 font-extrabold uppercase tracking-widest text-sm">{registeredQR.namaPemilik}</p><div className="flex gap-4"><button onClick={() => window.print()} className="flex-1 bg-slate-900 text-white p-6 rounded-[2rem] font-black flex items-center justify-center gap-4 hover:bg-black transition-all shadow-xl"><Icon name="Printer" /> CETAK</button><button onClick={() => setRegisteredQR(null)} className="flex-1 bg-slate-100 text-slate-500 p-6 rounded-[2rem] font-black hover:bg-slate-200 transition-all">SELESAI</button></div></div>)}
+                                    {!registeredQR ? (<div className="bg-white p-14 rounded-[4rem] border border-slate-100 shadow-xl"><h2 className="text-3xl font-black text-slate-800 mb-8 uppercase tracking-tighter">Unit Baru</h2><form onSubmit={handleRegister} className="space-y-8"><div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Nomor Plat</label><input name="plat" required placeholder="BM 1234 XY" className="w-full p-6 bg-slate-50 text-emerald-700 rounded-[2rem] border-2 border-emerald-50 outline-none uppercase font-black text-2xl shadow-inner focus:border-emerald-500" /></div><div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Nama Pemilik / Supir</label><input name="nama" required placeholder="Nama Lengkap..." className="w-full p-6 bg-slate-50 rounded-[2rem] border-2 border-emerald-50 outline-none font-black text-xl shadow-inner uppercase transition-all" /></div><button disabled={isLoading} className="w-full bg-emerald-600 text-white p-8 rounded-[2.5rem] font-black text-xl shadow-xl active:scale-95 transition-all">SIMPAN DATA</button></form></div>) : (<div className="bg-white p-12 rounded-[4rem] border-t-[15px] border-emerald-600 text-center space-y-10 shadow-2xl animate-in zoom-in-95"><img src={registeredQR.qrUrl} className="w-64 h-64 mx-auto rounded-3xl bg-slate-50 p-6 shadow-inner" /><h3 className="text-7xl font-black text-slate-900 uppercase tracking-tighter leading-none">{registeredQR.platNomor}</h3><p className="text-slate-500 font-extrabold uppercase tracking-widest text-sm">{registeredQR.namaPemilik}</p><div className="flex gap-4"><button onClick={() => window.print()} className="flex-1 bg-slate-900 text-white p-6 rounded-[2rem] font-black flex items-center justify-center gap-4 hover:bg-black shadow-xl transition-all"><Icon name="Printer" /> CETAK</button><button onClick={() => setRegisteredQR(null)} className="flex-1 bg-slate-100 text-slate-500 p-6 rounded-[2rem] font-black hover:bg-slate-200 transition-all">SELESAI</button></div></div>)}
                                 </div>
                             )}
                             {view === 'units' && (
-                                <div className="space-y-8 animate-in fade-in duration-700 pb-20"><div className="flex flex-col md:flex-row justify-between items-center gap-6"><h2 className="text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">Database Unit</h2><div className="relative w-full md:w-96"><Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input placeholder="Cari..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-14 pr-6 py-4 border border-slate-100 bg-white rounded-2xl outline-none font-bold text-sm shadow-sm" /></div></div><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{vehicles.filter(v => v.platNomor.toLowerCase().includes(searchQuery.toLowerCase())).map(v => (<div key={v.id} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden flex flex-col items-center text-center"><div className="flex justify-between items-start w-full mb-4"><div className="h-12 w-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><Icon name="Car" size={20} /></div><button onClick={() => setSelectedQR(v)} className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all"><Icon name="Printer" size={16} /></button></div><h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter leading-none mb-1">{v.platNomor}</h3><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{v.namaPemilik}</p><div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between w-full"><div className="flex items-center gap-2"><span className={`h-2.5 w-2.5 rounded-full ${v.status === 'di_dalam' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-200'}`}></span><span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{v.status === 'di_dalam' ? 'DI AREA' : 'DI LUAR'}</span></div></div></div>))}</div></div>
+                                <div className="space-y-8 animate-in fade-in duration-700 pb-20"><div className="flex flex-col md:flex-row justify-between items-center gap-6"><h2 className="text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">Database Unit</h2><div className="relative w-full md:w-96"><Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input placeholder="Cari..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-14 pr-6 py-4 border border-slate-100 bg-white rounded-2xl outline-none font-bold text-sm shadow-sm" /></div></div><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{vehicles.filter(v => v.platNomor.toLowerCase().includes(searchQuery.toLowerCase()) || v.namaPemilik.toLowerCase().includes(searchQuery.toLowerCase())).map(v => (<div key={v.id} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden flex flex-col items-center text-center"><div className="flex justify-between items-start w-full mb-4"><div className="h-12 w-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><Icon name="Car" size={20} /></div><button onClick={() => setSelectedQR(v)} className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all"><Icon name="Printer" size={16} /></button></div><h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter leading-none mb-1">{v.platNomor}</h3><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{v.namaPemilik}</p><div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between w-full"><div className="flex items-center gap-2"><span className={`h-2.5 w-2.5 rounded-full ${v.status === 'di_dalam' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-200'}`}></span><span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{v.status === 'di_dalam' ? 'DI AREA' : 'DI LUAR'}</span></div></div></div>))}</div></div>
                             )}
                             {view === 'manage_officers' && userRole === 'master' && (
                                 <div className="space-y-12 animate-in slide-in-from-bottom-8 pb-20"><div className="flex flex-col md:flex-row justify-between items-center gap-6"><h2 className="text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">Kelola Tim Jaga</h2><div className="relative w-full md:w-80"><Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input placeholder="Cari..." value={officerSearch} onChange={e => setOfficerSearch(e.target.value)} className="w-full pl-14 pr-6 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm shadow-sm outline-none" /></div></div><div className="grid grid-cols-1 lg:grid-cols-3 gap-8"><div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl space-y-8 h-fit lg:sticky lg:top-12"><h3 className="text-xl font-black uppercase tracking-tighter">Tambah Personel</h3><form onSubmit={addOfficer} className="space-y-6"><input name="name" required placeholder="NAMA LENGKAP" className="w-full p-5 bg-slate-50 rounded-2xl font-bold border-2 border-transparent focus:border-emerald-500 outline-none uppercase shadow-inner" /><input name="pass" type="password" required placeholder="KATA SANDI" className="w-full p-5 bg-slate-50 rounded-2xl font-bold border-2 border-transparent focus:border-emerald-500 outline-none shadow-inner" /><button type="submit" disabled={isLoading} className="w-full bg-emerald-600 text-white p-5 rounded-2xl font-black shadow-lg">DAFTARKAN</button></form></div><div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">{allOfficers.filter(o => o.name.toLowerCase().includes(officerSearch.toLowerCase())).map(off => (<div key={off.id} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-emerald-200 transition-all"><div className="flex items-center gap-4"><div className="h-14 w-14 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center font-black text-xs uppercase">{off.name.charAt(0)}</div><div><p className="font-black text-slate-800 uppercase leading-none">{off.name}</p><p className="text-[9px] font-bold text-slate-400 uppercase mt-1">Registrasi: {off.createdAt?.toDate().toLocaleDateString()}</p></div></div><button onClick={() => { if(window.confirm(`Hapus akun ${off.name}?`)) deleteOfficer(off.id); }} className="p-3 text-slate-200 hover:text-rose-600 transition-all"><Icon name="Trash2" size={18} /></button></div>))}</div></div></div>
@@ -530,17 +529,7 @@
 
                     {previewImage && (<div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm" onClick={() => setPreviewImage(null)}><button onClick={() => setPreviewImage(null)} className="absolute top-8 right-8 text-white/50 hover:text-white transition-all"><Icon name="X" size={40}/></button><img src={previewImage} className="max-h-[80vh] w-auto rounded-3xl shadow-2xl border-4 border-white/10" /></div>)}
                     {selectedQR && (<div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm transition-all animate-in fade-in" onClick={() => setSelectedQR(null)}><div className="bg-white w-full max-w-sm rounded-[4rem] p-12 text-center shadow-2xl relative animate-in zoom-in-95" onClick={e => e.stopPropagation()}><button onClick={() => setSelectedQR(null)} className="absolute top-8 right-8 text-slate-300 hover:text-rose-500 transition-colors"><Icon name="X" size={28} /></button><div className="bg-slate-50 p-6 rounded-[2.5rem] inline-block mb-8 shadow-inner"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}`} className="w-44 h-44 mx-auto rounded-xl" alt="QR" /></div><h3 className="text-6xl font-black text-slate-900 tracking-tighter leading-none mb-3 uppercase">{selectedQR.platNomor}</h3><p className="text-emerald-600 font-black uppercase text-[10px] tracking-[0.3em] mb-12 leading-none">{selectedQR.namaPemilik}</p><button onClick={() => { setRegisteredQR({ ...selectedQR, qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}` }); setSelectedQR(null); setTimeout(() => window.print(), 200); }} className="w-full bg-slate-900 text-white p-6 rounded-[2rem] font-black flex items-center justify-center gap-4 shadow-2xl active:scale-95 transition-all uppercase tracking-widest"><Icon name="Printer" size={22} /> CETAK STIKER</button></div></div>)}
-                    
-                    <div className="print-only hidden">
-                        {registeredQR && (
-                            <div className="flex flex-col items-center justify-center border-2 border-black p-10 w-[100mm] h-[100mm] text-center bg-white text-black">
-                                <h1 className="m-0 text-sm font-black uppercase">AFDELING VI SEI ROKAN</h1>
-                                <img src={registeredQR.qrUrl} className="w-[50mm] h-[50mm] my-4" />
-                                <h2 className="m-0 text-4xl font-black uppercase tracking-tighter">{registeredQR.platNomor}</h2>
-                                <p className="mt-2 text-xs font-bold uppercase">{registeredQR.namaPemilik}</p>
-                            </div>
-                        )}
-                    </div>
+                    <div className="print-only hidden">{registeredQR && (<div className="flex flex-col items-center justify-center border-2 border-black p-10 w-[100mm] h-[100mm] text-center bg-white text-black"><h1 className="m-0 text-sm font-black uppercase">AFDELING VI SEI ROKAN</h1><img src={registeredQR.qrUrl} className="w-[50mm] h-[50mm] my-4" /><h2 className="m-0 text-4xl font-black uppercase tracking-tighter">{registeredQR.platNomor}</h2><p className="mt-2 text-xs font-bold uppercase">{registeredQR.namaPemilik}</p></div>)}</div>
                 </div>
             );
         }
