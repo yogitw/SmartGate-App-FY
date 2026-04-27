@@ -56,10 +56,8 @@ import {
 } from 'lucide-react';
 
 /**
- * PENTING: KONFIGURASI FIREBASE
- * 1. Saat di Canvas: Aplikasi menggunakan __firebase_config otomatis.
- * 2. Saat di GitHub Pages: Anda WAJIB mengisi apiKey di bawah ini dengan 
- * kunci yang ada di Firebase Console Anda (Project Settings).
+ * KONFIGURASI FIREBASE
+ * Pastikan apiKey di manualFirebaseConfig sudah benar saat di-push ke GitHub.
  */
 const manualFirebaseConfig = {
   apiKey: "AIzaSyBvXN-verMsJQQC77p1I7Abc5vOAScPR2k",
@@ -85,7 +83,7 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'smartgate-sei-rokan-
 const MASTER_PASSWORD = "MASTER6";
 
 const StatusToast = ({ message, type }) => (
-  <div className={`fixed top-20 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-white font-bold shadow-2xl z-[100] flex items-center gap-3 animate-bounce ${type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
+  <div className={`fixed top-10 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-white font-bold shadow-2xl z-[200] flex items-center gap-3 animate-in slide-in-from-top duration-300 ${type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'}`}>
     {type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
     <span className="text-sm whitespace-nowrap">{message}</span>
   </div>
@@ -134,7 +132,9 @@ export default function App() {
       }
     };
     initAuth();
-    const unsubscribe = onAuthStateChanged(auth, setUser);
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+        setUser(u);
+    });
     return () => unsubscribe();
   }, []);
 
@@ -227,6 +227,7 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
+  // Handlers
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -251,7 +252,7 @@ export default function App() {
         showStatus("Kredensial Petugas Salah!", "error");
       }
     } catch (err) {
-      showStatus("Gagal Login: Cek Konfigurasi Firebase Anda", "error");
+      showStatus("Gagal Login: Cek Koneksi Firebase", "error");
     } finally {
       setIsLoading(false);
     }
@@ -335,7 +336,7 @@ export default function App() {
       }
       setManualPlate(''); setKeteranganScan(''); setCapturedPhoto(null); setView('dashboard');
     } catch (err) { 
-      showStatus("Gagal memproses akses", "error"); 
+      showStatus("Gagal memproses", "error"); 
     } finally { 
       setIsLoading(false); 
     }
@@ -388,40 +389,40 @@ export default function App() {
   // UI Login
   if (view === 'login') {
     return (
-      <div className="min-h-screen bg-emerald-600 flex items-center justify-center p-6 font-sans">
-        <div className="w-full max-w-md bg-white rounded-[3rem] p-10 shadow-2xl text-center space-y-8 animate-in zoom-in-95">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans">
+        <div className="w-full max-w-md bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl text-center space-y-8 animate-in zoom-in-95">
           <div className="flex flex-col items-center gap-4">
-            <div className="h-20 w-20 bg-emerald-50 text-emerald-600 rounded-[2rem] flex items-center justify-center shadow-inner">
+            <div className="h-20 w-20 bg-emerald-100 text-emerald-600 rounded-[2rem] flex items-center justify-center shadow-inner">
               <ShieldCheck size={48} />
             </div>
             <div>
-              <h1 className="text-3xl font-black text-slate-800 tracking-tighter">SmartGate</h1>
-              <p className="text-emerald-500 font-bold uppercase text-[10px] tracking-widest leading-none">AFDELING VI - SEI ROKAN</p>
+              <h1 className="text-3xl font-black text-slate-800 tracking-tighter uppercase leading-none">SmartGate</h1>
+              <p className="text-emerald-500 font-bold uppercase text-[10px] tracking-widest leading-none mt-2">AFDELING VI - SEI ROKAN</p>
             </div>
           </div>
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2 text-left">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5 block">ID Petugas</label>
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div className="space-y-1 text-left">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">ID Petugas</label>
               <div className="relative">
-                <User className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-300" size={18} />
-                <input type="text" value={officerNameInput} onChange={(e) => setOfficerNameInput(e.target.value)} placeholder="Username..." required className="w-full pl-14 pr-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-[2rem] font-bold outline-none focus:border-emerald-500 transition-all shadow-inner" />
+                <User className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                <input type="text" value={officerNameInput} onChange={(e) => setOfficerNameInput(e.target.value)} placeholder="Username..." required className="w-full pl-14 pr-8 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold outline-none focus:border-emerald-500 transition-all shadow-inner uppercase" />
               </div>
             </div>
-            <div className="space-y-2 text-left">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5 block">Sandi</label>
+            <div className="space-y-1 text-left">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Sandi</label>
               <div className="relative">
-                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-300" size={18} />
-                <input type={showPassword ? "text" : "password"} value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} placeholder="••••••••" required className="w-full pl-14 pr-14 py-5 bg-slate-50 border-2 border-slate-100 rounded-[2rem] font-bold outline-none focus:border-emerald-500 transition-all shadow-inner" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-emerald-500">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                <input type={showPassword ? "text" : "password"} value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} placeholder="••••••••" required className="w-full pl-14 pr-14 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold outline-none focus:border-emerald-500 transition-all shadow-inner" />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-emerald-500 transition-colors">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
               </div>
             </div>
-            <button type="submit" disabled={isLoading} className="w-full bg-emerald-600 text-white p-6 rounded-[2rem] font-black text-lg shadow-xl hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center gap-4">
-              {isLoading ? <Clock className="animate-spin" size={20} /> : <LogIn size={20} />}
-              <span>{isLoading ? 'MEMVERIFIKASI...' : 'MASUK'}</span>
+            <button type="submit" disabled={isLoading} className="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center gap-4">
+              {isLoading ? <Clock className="animate-spin" size={22} /> : <LogIn size={22} />}
+              <span>{isLoading ? 'VERIFIKASI...' : 'MASUK'}</span>
             </button>
           </form>
           <div className="pt-4 border-t border-slate-50">
-            <p className="text-[9px] text-slate-300 uppercase tracking-widest font-bold">SmartGate Security System V1.0</p>
+            <p className="text-[9px] text-slate-300 uppercase tracking-[0.2em] font-black">Gate Security Edition V1.2</p>
           </div>
         </div>
       </div>
@@ -429,16 +430,19 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[#F8FAFC] text-slate-900 font-sans">
-      <aside className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white border-r border-slate-100 transition-transform duration-300 z-[60] p-8 flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+    <div className="min-h-screen flex flex-col md:flex-row bg-[#F8FAFC] text-slate-900 font-sans overflow-hidden">
+      {/* Sidebar Mobile Overlay */}
+      <aside className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white border-r border-slate-100 transition-transform duration-300 z-[100] p-8 flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0 shadow-2xl md:shadow-none'}`}>
         <div className="flex items-center gap-4 mb-12">
           <div className="h-12 w-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg"><ShieldCheck size={28} /></div>
           <div>
             <h1 className="text-xl font-extrabold text-slate-800 leading-tight">SmartGate</h1>
             <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none mt-1">Afdeling VI</p>
           </div>
+          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden ml-auto text-slate-300 hover:text-rose-500 transition-colors"><X size={24} /></button>
         </div>
-        <nav className="space-y-1 flex-1">
+        
+        <nav className="space-y-1 flex-1 overflow-y-auto no-scrollbar">
           {[{id:'dashboard', icon:LayoutDashboard, label:'Dashboard'}, {id:'scan', icon:ShieldCheck, label:'Scan Akses'}, {id:'register', icon:PlusCircle, label:'Registrasi Unit'}, {id:'units', icon:Database, label:'Data Unit'}, {id:'history', icon:History, label:'Log Aktivitas'}].map(item => (
             <button key={item.id} onClick={() => { setView(item.id); setIsSidebarOpen(false); }} className={`flex items-center space-x-4 w-full p-4 rounded-xl font-bold text-sm transition-all ${view === item.id ? 'bg-emerald-600 text-white shadow-xl' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600'}`}>
               <item.icon size={20} /> <span>{item.label}</span>
@@ -446,78 +450,89 @@ export default function App() {
           ))}
           {userRole === 'master' && (
             <>
-              <div className="pt-8 pb-4 px-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Admin</div>
-              <button onClick={() => { setView('manage_officers'); setIsSidebarOpen(false); }} className={`flex items-center space-x-4 w-full p-4 rounded-xl font-bold text-sm transition-all ${view === 'manage_officers' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-500 hover:bg-slate-50'}`}>
-                <Users size={20} /> <span>Kelola Tim</span>
-              </button>
+                <div className="pt-8 pb-4 px-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Administrator</div>
+                <button onClick={() => { setView('manage_officers'); setIsSidebarOpen(false); }} className={`flex items-center space-x-4 w-full p-4 rounded-xl font-bold text-sm transition-all ${view === 'manage_officers' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-500 hover:bg-slate-50'}`}>
+                    <Users size={20} /> <span>Kelola Tim</span>
+                </button>
             </>
           )}
         </nav>
-        <div className="mt-auto space-y-4">
-          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-3 p-4 bg-rose-50 text-rose-600 rounded-2xl font-black text-xs hover:bg-rose-100 transition-all border border-rose-100"><LogOut size={16} /> KELUAR</button>
+        
+        <div className="mt-auto pt-6 space-y-4">
+          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-3 p-4 bg-rose-50 text-rose-600 rounded-2xl font-black text-xs hover:bg-rose-100 transition-all border border-rose-100 tracking-widest uppercase"><LogOut size={16} /> Keluar</button>
           <div className={`p-4 rounded-2xl border flex items-center gap-3 ${userRole === 'master' ? 'bg-slate-900 border-slate-800' : 'bg-emerald-50 border-emerald-100'}`}>
-            <div className={`h-10 w-10 rounded-full flex items-center justify-center font-black text-xs border shadow-sm ${userRole === 'master' ? 'bg-slate-800 text-white border-slate-700' : 'bg-white text-emerald-600 border-emerald-100'}`}>{userRole === 'master' ? 'MS' : 'VI'}</div>
+            <div className={`h-10 w-10 rounded-full flex items-center justify-center font-black text-xs border shadow-sm flex-shrink-0 ${userRole === 'master' ? 'bg-slate-800 text-white border-slate-700' : 'bg-white text-emerald-600 border-emerald-100'}`}>{userRole === 'master' ? 'MS' : 'VI'}</div>
             <div className="overflow-hidden">
-              <p className={`text-[8px] font-bold uppercase tracking-widest leading-none mb-1 ${userRole === 'master' ? 'text-slate-400' : 'text-emerald-400'}`}>AKTIF</p>
+              <p className={`text-[8px] font-black uppercase tracking-widest leading-none mb-1 ${userRole === 'master' ? 'text-slate-400' : 'text-emerald-400'}`}>PETUGAS JAGA</p>
               <p className={`text-[10px] font-bold truncate uppercase ${userRole === 'master' ? 'text-white' : 'text-emerald-900'}`}>{currentOfficer}</p>
             </div>
           </div>
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="md:hidden bg-white border-b p-4 flex items-center justify-between sticky top-0 z-50">
-          <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl"><Menu size={24} /></button>
-          <h2 className="text-xs font-black text-emerald-600 uppercase tracking-widest leading-none">SmartGate VI</h2>
+      {/* Konten Utama */}
+      <main className="flex-1 flex flex-col h-screen relative overflow-hidden">
+        <header className="md:hidden bg-white border-b p-4 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+          <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"><Menu size={24} /></button>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="text-emerald-600" size={20} />
+            <h2 className="text-xs font-black text-slate-800 uppercase tracking-widest leading-none">SmartGate VI</h2>
+          </div>
           <div className="w-10"></div>
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-12 relative no-scrollbar">
           {statusMsg && <StatusToast message={statusMsg.text} type={statusMsg.type} />}
 
-          {/* DASHBOARD */}
+          {/* DASHBOARD VIEW */}
           {view === 'dashboard' && (
-            <div className="space-y-8 animate-in fade-in duration-500">
-              <div className="bg-emerald-600 p-8 md:p-20 rounded-[4rem] text-white shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
+            <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+              <div className="bg-emerald-600 p-8 md:p-20 rounded-[3rem] md:rounded-[5rem] text-white shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
                 <div className="relative z-10 space-y-6">
-                  <div className="bg-emerald-500/50 backdrop-blur-sm px-4 py-2 rounded-full inline-flex items-center gap-2 border border-emerald-400/50">
+                  <div className="bg-emerald-500/50 backdrop-blur-sm px-5 py-2 rounded-full inline-flex items-center gap-3 border border-emerald-400/50">
                     <UserCheck size={14} className="text-emerald-100" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">{currentOfficer}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest tracking-tighter">{currentOfficer} • Pos VI</span>
                   </div>
-                  <h2 className="text-3xl md:text-7xl font-black tracking-tighter uppercase leading-none">KEBUN <br/><span className="text-emerald-200">SEI ROKAN</span></h2>
-                  <div className="text-5xl md:text-9xl font-black opacity-95 tracking-tighter tabular-nums drop-shadow-2xl">{currentTime.toLocaleTimeString('id-ID')}</div>
-                  <p className="text-[10px] md:text-base font-bold uppercase tracking-[0.3em] opacity-70 tracking-widest">Afdeling VI Gate Control</p>
+                  <h2 className="text-4xl md:text-8xl font-black tracking-tighter uppercase leading-[0.9] drop-shadow-xl">KEBUN <br/><span className="text-emerald-200">SEI ROKAN</span></h2>
+                  <div className="text-6xl md:text-[10rem] font-black opacity-95 tracking-tighter tabular-nums drop-shadow-2xl leading-none">{currentTime.toLocaleTimeString('id-ID', { hour12: false })}</div>
+                  <p className="text-[10px] md:text-lg font-bold uppercase tracking-[0.4em] opacity-80 leading-none">Security Gate Control VI</p>
                 </div>
-                <ShieldCheck size={400} className="absolute -right-20 -bottom-20 opacity-10 rotate-12 pointer-events-none" />
+                <ShieldCheck size={500} className="absolute -right-32 -bottom-32 opacity-10 rotate-12 pointer-events-none" />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
-                <button onClick={() => { setScanMode('masuk'); setView('scan'); }} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:border-emerald-500 transition-all text-left">
-                  <div className="h-20 w-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><ArrowDownLeft size={32}/></div>
-                  <div><h3 className="font-black text-2xl text-slate-800 uppercase tracking-tighter">Scan Masuk</h3><p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-none mt-1">Otorisasi Unit Masuk</p></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button onClick={() => { setScanMode('masuk'); setView('scan'); }} className="bg-white p-8 md:p-12 rounded-[3rem] border border-slate-100 shadow-sm flex items-center gap-8 group hover:border-emerald-500 transition-all text-left">
+                  <div className="h-20 w-20 md:h-24 md:w-24 bg-emerald-50 text-emerald-600 rounded-[2rem] flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><ArrowDownLeft size={40}/></div>
+                  <div>
+                    <h3 className="font-black text-2xl md:text-3xl text-slate-800 uppercase tracking-tighter leading-none">Scan Masuk</h3>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-2 leading-none">Otorisasi Unit Masuk</p>
+                  </div>
                 </button>
-                <button onClick={() => { setScanMode('keluar'); setView('scan'); }} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:border-emerald-500 transition-all text-left">
-                  <div className="h-20 w-20 bg-rose-50 text-rose-600 rounded-3xl flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-all shadow-inner"><ArrowUpRight size={32}/></div>
-                  <div><h3 className="font-black text-2xl text-slate-800 uppercase tracking-tighter">Scan Keluar</h3><p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-none mt-1">Konfirmasi Unit Keluar</p></div>
+                <button onClick={() => { setScanMode('keluar'); setView('scan'); }} className="bg-white p-8 md:p-12 rounded-[3rem] border border-slate-100 shadow-sm flex items-center gap-8 group hover:border-emerald-500 transition-all text-left">
+                  <div className="h-20 w-20 md:h-24 md:w-24 bg-rose-50 text-rose-600 rounded-[2rem] flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-all shadow-inner"><ArrowUpRight size={40}/></div>
+                  <div>
+                    <h3 className="font-black text-2xl md:text-3xl text-slate-800 uppercase tracking-tighter leading-none">Scan Keluar</h3>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-2 leading-none">Konfirmasi Unit Keluar</p>
+                  </div>
                 </button>
               </div>
             </div>
           )}
 
-          {/* MANAGE OFFICERS */}
+          {/* MANAGE OFFICERS VIEW */}
           {view === 'manage_officers' && userRole === 'master' && (
-            <div className="space-y-12 animate-in slide-in-from-bottom-8 duration-700 pb-20">
+            <div className="space-y-10 animate-in slide-in-from-bottom-8 duration-700 pb-20">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div className="flex items-center gap-6">
-                        <div className="h-16 w-16 bg-slate-900 text-white rounded-3xl flex items-center justify-center shadow-2xl"><Users size={32} /></div>
+                        <div className="h-16 w-16 bg-slate-900 text-white rounded-[1.5rem] flex items-center justify-center shadow-2xl"><Users size={32} /></div>
                         <div>
-                            <h2 className="text-4xl font-black text-slate-800 tracking-tighter leading-none">Kelola Tim</h2>
-                            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">Total: {allOfficers.length} Personel</p>
+                            <h2 className="text-4xl font-black text-slate-800 tracking-tighter leading-none uppercase">Kelola Tim</h2>
+                            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.3em] mt-1">Sistem Administrasi VI</p>
                         </div>
                     </div>
                     <div className="relative w-full md:w-80">
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-                        <input placeholder="Cari..." value={officerSearch} onChange={(e) => setOfficerSearch(e.target.value)} className="w-full pl-14 pr-6 py-4 bg-white border border-slate-100 rounded-2xl outline-none font-bold text-sm shadow-sm" />
+                        <input placeholder="Cari Personel..." value={officerSearch} onChange={(e) => setOfficerSearch(e.target.value)} className="w-full pl-14 pr-6 py-4 bg-white border border-slate-100 rounded-2xl outline-none font-bold text-sm shadow-sm focus:border-slate-400 transition-all" />
                     </div>
                 </div>
 
@@ -525,12 +540,15 @@ export default function App() {
                     <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl space-y-8 h-fit lg:sticky lg:top-12">
                         <div className="flex items-center gap-3">
                             <UserPlus className="text-emerald-500" size={24} />
-                            <h3 className="text-xl font-black uppercase tracking-tighter">Tambah Baru</h3>
+                            <h3 className="text-xl font-black uppercase tracking-tighter">Tambah Petugas</h3>
                         </div>
                         <form onSubmit={addOfficer} className="space-y-6">
                             <input name="name" required placeholder="Nama Lengkap..." className="w-full p-5 bg-slate-50 rounded-2xl font-bold border-2 border-transparent focus:border-emerald-500 outline-none transition-all uppercase shadow-inner" />
                             <input name="pass" type="password" required placeholder="Sandi Akses..." className="w-full p-5 bg-slate-50 rounded-2xl font-bold border-2 border-transparent focus:border-emerald-500 outline-none transition-all shadow-inner" />
-                            <button type="submit" disabled={isLoading} className="w-full bg-emerald-600 text-white p-5 rounded-2xl font-black shadow-lg hover:bg-emerald-700 transition-all">SIMPAN</button>
+                            <button type="submit" disabled={isLoading} className="w-full bg-emerald-600 text-white p-5 rounded-2xl font-black shadow-lg hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center gap-3">
+                                {isLoading ? <Clock className="animate-spin" size={20} /> : <PlusCircle size={20} />}
+                                <span>SIMPAN PETUGAS</span>
+                            </button>
                         </form>
                     </div>
 
@@ -539,7 +557,7 @@ export default function App() {
                             {allOfficers
                               .filter(off => off.name.toLowerCase().includes(officerSearch.toLowerCase()))
                               .map(off => (
-                                <div key={off.id} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-emerald-200 transition-all">
+                                <div key={off.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-emerald-200 hover:shadow-md transition-all">
                                     <div className="flex items-center gap-4">
                                         <div className="h-12 w-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center font-black text-xs uppercase group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner">{off.name.charAt(0)}</div>
                                         <div>
@@ -547,7 +565,7 @@ export default function App() {
                                             <p className="text-[9px] font-bold text-slate-400 uppercase mt-1">Daftar: {off.createdAt?.toDate().toLocaleDateString('id-ID')}</p>
                                         </div>
                                     </div>
-                                    <button onClick={() => { if(window.confirm(`Hapus ${off.name}?`)) deleteOfficer(off.id); }} className="p-3 text-slate-200 hover:text-rose-600 rounded-2xl transition-all shadow-sm"><Trash2 size={18} /></button>
+                                    <button onClick={() => { if(window.confirm(`Hapus akun ${off.name}?`)) deleteOfficer(off.id); }} className="p-3 text-slate-200 hover:bg-rose-50 hover:text-rose-600 rounded-2xl transition-all shadow-sm"><Trash2 size={18} /></button>
                                 </div>
                             ))}
                         </div>
@@ -556,95 +574,102 @@ export default function App() {
             </div>
           )}
 
-          {/* SCAN */}
+          {/* SCAN VIEW */}
           {view === 'scan' && (
-            <div className="max-w-2xl mx-auto space-y-8 pb-24 animate-in zoom-in-95">
-              <div className="flex bg-slate-100 p-1.5 rounded-[2rem] shadow-inner">
-                <button onClick={() => setScanMode('masuk')} className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-[1.8rem] font-black text-xs uppercase tracking-widest transition-all ${scanMode === 'masuk' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400'}`}><ArrowDownLeft size={16} /> MASUK</button>
-                <button onClick={() => setScanMode('keluar')} className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-[1.8rem] font-black text-xs uppercase tracking-widest transition-all ${scanMode === 'keluar' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-400'}`}>KELUAR <ArrowUpRight size={16} /></button>
+            <div className="max-w-2xl mx-auto space-y-8 pb-32 animate-in zoom-in-95">
+              <div className="flex bg-slate-100 p-2 rounded-[2rem] shadow-inner">
+                <button onClick={() => setScanMode('masuk')} className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-[1.8rem] font-black text-xs uppercase tracking-widest transition-all ${scanMode === 'masuk' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}><ArrowDownLeft size={16} /> MASUK</button>
+                <button onClick={() => setScanMode('keluar')} className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-[1.8rem] font-black text-xs uppercase tracking-widest transition-all ${scanMode === 'keluar' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>KELUAR <ArrowUpRight size={16} /></button>
               </div>
 
-              <div className="bg-slate-900 aspect-square rounded-[4rem] p-4 relative overflow-hidden border-[15px] border-white shadow-2xl">
-                <div id="reader" className="w-full h-full rounded-[3rem] overflow-hidden"></div>
-                <div className="absolute inset-0 pointer-events-none p-12">
-                   <div className={`w-full h-1 opacity-50 shadow-[0_0_15px] animate-scan absolute top-0 left-0 ${scanMode === 'masuk' ? 'bg-emerald-400 shadow-emerald-400' : 'bg-rose-400 shadow-rose-400'}`}></div>
+              <div className="bg-slate-900 aspect-square rounded-[3.5rem] p-4 relative overflow-hidden border-[12px] border-white shadow-2xl">
+                <div id="reader" className="w-full h-full rounded-[2.5rem] overflow-hidden"></div>
+                <div className="absolute inset-0 pointer-events-none p-10 flex flex-col justify-center items-center">
+                   <div className={`w-full h-1 opacity-50 shadow-[0_0_20px] animate-scan absolute left-0 ${scanMode === 'masuk' ? 'bg-emerald-400 shadow-emerald-400' : 'bg-rose-400 shadow-rose-400'}`}></div>
+                   <div className="border-4 border-white/20 w-48 h-48 rounded-[2rem]"></div>
                 </div>
               </div>
 
-              <div className="bg-white p-8 rounded-[3.5rem] border border-slate-100 space-y-6 shadow-sm">
+              <div className="bg-white p-8 md:p-10 rounded-[3rem] border border-slate-100 space-y-8 shadow-xl">
                 <div className="space-y-4 text-center">
                     {!capturedPhoto ? (
-                        <button onClick={() => fileInputRef.current?.click()} className="w-full h-40 border-4 border-dashed border-slate-100 rounded-[2rem] flex flex-col items-center justify-center gap-3 text-slate-400 hover:text-emerald-500 transition-all bg-slate-50/50 shadow-inner">
-                            <Camera size={40} /> <span className="font-bold text-sm tracking-widest uppercase">Foto Dokumentasi</span>
+                        <button onClick={() => fileInputRef.current?.click()} className="w-full h-44 border-4 border-dashed border-slate-100 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 text-slate-300 hover:text-emerald-500 hover:border-emerald-200 transition-all bg-slate-50/50 shadow-inner group">
+                            <Camera size={48} className="group-hover:scale-110 transition-transform" /> 
+                            <span className="font-black text-xs tracking-[0.2em] uppercase">Ambil Bukti Unit</span>
                         </button>
                     ) : (
-                        <div className="relative rounded-[2.5rem] overflow-hidden border-4 border-emerald-100 shadow-xl">
-                            <img src={capturedPhoto} className="w-full h-60 object-cover" />
-                            <button onClick={() => setCapturedPhoto(null)} className="absolute top-4 right-4 h-12 w-12 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-rose-600 transition-all"><Trash2 size={20} /></button>
+                        <div className="relative rounded-[2.5rem] overflow-hidden border-4 border-emerald-100 shadow-2xl group">
+                            <img src={capturedPhoto} className="w-full h-64 object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button onClick={() => setCapturedPhoto(null)} className="h-16 w-16 bg-rose-600 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform"><Trash2 size={24} /></button>
+                            </div>
                         </div>
                     )}
                     <input type="file" accept="image/*" capture="environment" hidden ref={fileInputRef} onChange={(e) => { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onloadend = () => setCapturedPhoto(reader.result); reader.readAsDataURL(file); } }} />
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 block">Plat Nomor</label>
-                  <input placeholder="BM 1234 XY" value={manualPlate} onChange={(e) => setManualPlate(e.target.value.toUpperCase())} className={`w-full p-6 text-center rounded-[2rem] border-2 outline-none uppercase font-black text-3xl shadow-inner transition-all ${scanMode === 'masuk' ? 'bg-emerald-50 text-emerald-700 border-emerald-50 focus:border-emerald-500' : 'bg-rose-50 text-rose-700 border-rose-50 focus:border-rose-500'}`} />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Ketik Plat Manual</label>
+                    <input placeholder="BM 1234 XY" value={manualPlate} onChange={(e) => setManualPlate(e.target.value.toUpperCase())} className={`w-full p-6 text-center rounded-[2rem] border-4 outline-none uppercase font-black text-4xl shadow-inner transition-all ${scanMode === 'masuk' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 focus:border-emerald-500' : 'bg-rose-50 text-rose-700 border-rose-100 focus:border-rose-500'}`} />
+                  </div>
+
+                  {scanMode === 'masuk' && (
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Tujuan / Keperluan</label>
+                      <textarea placeholder="Contoh: Muat Kelapa Sawit, Tamu Estate..." value={keteranganScan} onChange={(e) => setKeteranganScan(e.target.value)} className="w-full p-6 bg-slate-50 rounded-3xl outline-none font-bold text-sm h-28 focus:border-emerald-500 resize-none border-2 border-slate-50 shadow-inner uppercase transition-all" />
+                    </div>
+                  )}
                 </div>
 
-                {scanMode === 'masuk' && (
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 block">Keperluan</label>
-                    <textarea placeholder="Contoh: Muat Kelapa Sawit..." value={keteranganScan} onChange={(e) => setKeteranganScan(e.target.value)} className="w-full p-6 bg-slate-50 rounded-2xl outline-none font-bold text-sm h-24 focus:border-emerald-500 resize-none border-2 border-slate-50 shadow-inner uppercase" />
-                  </div>
-                )}
-
-                <button onClick={() => processScan()} disabled={isLoading} className={`w-full p-8 rounded-[2rem] font-black text-xl shadow-xl active:scale-95 transition-all flex items-center justify-center gap-4 ${scanMode === 'masuk' ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-rose-500 text-white hover:bg-rose-600'}`}>
-                  {isLoading ? 'MEMPROSES...' : (scanMode === 'masuk' ? 'OTORISASI MASUK' : 'OTORISASI KELUAR')}
+                <button onClick={() => processScan()} disabled={isLoading} className={`w-full p-8 rounded-[2.5rem] font-black text-xl shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-4 ${scanMode === 'masuk' ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-rose-600 text-white hover:bg-rose-700'}`}>
+                  {isLoading ? <Clock className="animate-spin" size={24} /> : (scanMode === 'masuk' ? 'OTORISASI MASUK' : 'OTORISASI KELUAR')}
                 </button>
               </div>
             </div>
           )}
 
-          {/* HISTORY */}
+          {/* HISTORY VIEW */}
           {view === 'history' && (
             <div className="space-y-8 animate-in fade-in duration-700 pb-20">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <h2 className="text-4xl font-black text-slate-800 tracking-tighter leading-none">Log Aktivitas</h2>
+                <h2 className="text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">Log Aktivitas</h2>
                 <div className="relative w-full md:w-96">
                   <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-                  <input placeholder="Cari Log..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-14 pr-6 py-4 border border-slate-100 bg-white rounded-2xl outline-none font-bold text-sm shadow-sm" />
+                  <input placeholder="Cari Plat Nomor..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-14 pr-6 py-4 border-2 border-slate-50 bg-white rounded-2xl outline-none font-bold text-sm shadow-sm focus:border-emerald-500 transition-all" />
                 </div>
               </div>
-              <div className="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
+              
+              <div className="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-xl">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left min-w-[1300px]">
-                    <thead className="bg-emerald-50/20">
+                    <thead className="bg-emerald-50/30">
                       <tr>
-                        <th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest">Unit & Pemilik</th>
-                        <th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest">Masuk</th>
-                        <th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest">Keluar</th>
-                        <th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest">Keperluan</th>
-                        <th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest">Penjaga</th>
-                        <th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest text-right">Otorisasi</th>
+                        <th className="p-8 text-[10px] font-black uppercase text-emerald-700 tracking-widest">Identitas Unit</th>
+                        <th className="p-8 text-[10px] font-black uppercase text-emerald-700 tracking-widest">Waktu Masuk</th>
+                        <th className="p-8 text-[10px] font-black uppercase text-emerald-700 tracking-widest">Waktu Keluar</th>
+                        <th className="p-8 text-[10px] font-black uppercase text-emerald-700 tracking-widest">Keterangan</th>
+                        <th className="p-8 text-[10px] font-black uppercase text-emerald-700 tracking-widest">Petugas Jaga</th>
+                        <th className="p-8 text-[10px] font-black uppercase text-emerald-700 tracking-widest text-right">Otorisasi</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
                       {logs.filter(l => l.platNomor.toLowerCase().includes(searchQuery.toLowerCase()) || l.namaPemilik.toLowerCase().includes(searchQuery.toLowerCase())).map(l => (
-                        <tr key={l.id} className="hover:bg-emerald-50/5 transition-all group">
+                        <tr key={l.id} className="hover:bg-slate-50/50 transition-all">
                           <td className="p-8">
-                            <div className="font-black text-3xl text-slate-800 uppercase tracking-tighter leading-none mb-1">{l.platNomor}</div>
-                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{l.namaPemilik}</div>
+                            <div className="font-black text-3xl text-slate-900 uppercase tracking-tighter leading-none mb-1">{l.platNomor}</div>
+                            <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest tracking-tighter leading-none">{l.namaPemilik}</div>
                           </td>
                           <td className="p-8">
                             <div className="flex items-center gap-4">
                                 {l.photo && (
-                                    <div onClick={() => setPreviewImage(l.photo)} className="h-12 w-12 rounded-lg overflow-hidden cursor-zoom-in border-2 border-white shadow-sm flex-shrink-0">
+                                    <div onClick={() => setPreviewImage(l.photo)} className="h-14 w-14 rounded-2xl overflow-hidden cursor-zoom-in border-4 border-white shadow-lg flex-shrink-0">
                                         <img src={l.photo} className="w-full h-full object-cover" />
                                     </div>
                                 )}
                                 <div>
-                                    <div className="font-black text-xl text-slate-700 tabular-nums">{l.timestampMasuk?.toDate().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</div>
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{l.timestampMasuk?.toDate().toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</div>
+                                    <div className="font-black text-2xl text-slate-800 tabular-nums leading-none mb-1">{l.timestampMasuk?.toDate().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}</div>
+                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest tracking-tighter leading-none">{l.timestampMasuk?.toDate().toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}</div>
                                 </div>
                             </div>
                           </td>
@@ -652,38 +677,41 @@ export default function App() {
                             {l.timestampKeluar ? (
                                 <div className="flex items-center gap-4">
                                     {l.photoExit && (
-                                        <div onClick={() => setPreviewImage(l.photoExit)} className="h-12 w-12 rounded-lg overflow-hidden cursor-zoom-in border-2 border-white shadow-sm flex-shrink-0">
+                                        <div onClick={() => setPreviewImage(l.photoExit)} className="h-14 w-14 rounded-2xl overflow-hidden cursor-zoom-in border-4 border-white shadow-lg flex-shrink-0">
                                             <img src={l.photoExit} className="w-full h-full object-cover" />
                                         </div>
                                     )}
                                     <div>
-                                        <div className="font-black text-xl text-slate-700 tabular-nums">{l.timestampKeluar?.toDate().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{l.timestampKeluar?.toDate().toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</div>
+                                        <div className="font-black text-2xl text-slate-800 tabular-nums leading-none mb-1">{l.timestampKeluar?.toDate().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}</div>
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest tracking-tighter leading-none">{l.timestampKeluar?.toDate().toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'})}</div>
                                     </div>
                                 </div>
                             ) : (
-                                <span className="text-[9px] font-black text-emerald-600 uppercase italic tracking-widest bg-emerald-50 px-3 py-1 rounded-lg">Di Kebun</span>
+                                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full w-fit">
+                                    <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">AKTIF DI DALAM</span>
+                                </div>
                             )}
                           </td>
                           <td className="p-8">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest max-w-[200px] block">{l.keterangan || "AKSES RUTIN"}</span>
+                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest max-w-[200px] block leading-relaxed">{l.keterangan || "AKSES REGULAR"}</span>
                           </td>
                           <td className="p-8">
-                            <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-2">
-                                    <div className="h-5 w-5 bg-emerald-100 text-emerald-700 rounded flex items-center justify-center text-[7px] font-black">IN</div>
-                                    <span className="text-[9px] font-black text-slate-600 uppercase truncate max-w-[100px]">{l.petugasMasuk}</span>
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3">
+                                    <span className="h-5 w-5 bg-emerald-100 text-emerald-700 rounded-md flex items-center justify-center text-[8px] font-black">IN</span>
+                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter truncate max-w-[120px]">{l.petugasMasuk}</span>
                                 </div>
                                 {l.petugasKeluar && (
-                                    <div className="flex items-center gap-2">
-                                        <div className="h-5 w-5 bg-rose-100 text-rose-700 rounded flex items-center justify-center text-[7px] font-black">OUT</div>
-                                        <span className="text-[9px] font-black text-slate-600 uppercase truncate max-w-[100px]">{l.petugasKeluar}</span>
+                                    <div className="flex items-center gap-3">
+                                        <span className="h-5 w-5 bg-rose-100 text-rose-700 rounded-md flex items-center justify-center text-[8px] font-black">OUT</span>
+                                        <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter truncate max-w-[120px]">{l.petugasKeluar}</span>
                                     </div>
                                 )}
                             </div>
                           </td>
                           <td className="p-8 text-right">
-                            <span className="bg-emerald-600 text-white px-5 py-2 rounded-full text-[10px] font-black tracking-widest uppercase shadow-md shadow-emerald-100 inline-block">Authorized</span>
+                            <span className="bg-emerald-600 text-white px-5 py-2 rounded-full text-[10px] font-black tracking-widest uppercase shadow-lg shadow-emerald-200">Verified</span>
                           </td>
                         </tr>
                       ))}
@@ -694,92 +722,119 @@ export default function App() {
             </div>
           )}
 
-          {/* REGISTER */}
+          {/* REGISTER VIEW */}
           {view === 'register' && (
-            <div className="max-w-2xl mx-auto pb-20 animate-in slide-in-from-bottom-8">
+            <div className="max-w-2xl mx-auto pb-24 animate-in slide-in-from-bottom-8 duration-500">
                 {!registeredQR ? (
-                    <div className="bg-white p-14 rounded-[4rem] border border-slate-100 shadow-xl">
-                        <h2 className="text-3xl font-black text-slate-800 mb-8 tracking-tighter uppercase leading-none">Registrasi Baru</h2>
+                    <div className="bg-white p-12 md:p-16 rounded-[3.5rem] border border-slate-100 shadow-2xl">
+                        <div className="flex items-center gap-4 mb-10">
+                            <div className="h-14 w-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center"><PlusCircle size={28}/></div>
+                            <div>
+                                <h2 className="text-3xl font-black text-slate-800 tracking-tighter uppercase leading-none">Pendaftaran Unit</h2>
+                                <p className="text-slate-400 font-bold text-[10px] tracking-widest uppercase mt-1">Registrasi Baru Afdeling VI</p>
+                            </div>
+                        </div>
                         <form onSubmit={handleRegister} className="space-y-8">
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5 block">Nomor Plat</label>
-                                <input name="plat" required placeholder="BM 1234 XY" className="w-full p-6 bg-slate-50 text-emerald-700 rounded-[2rem] border-2 border-emerald-50 outline-none uppercase font-black text-2xl shadow-inner focus:border-emerald-500 focus:bg-white" />
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5 block">Nomor Plat Kendaraan</label>
+                                <input name="plat" required placeholder="BM 1234 XY" className="w-full p-6 bg-slate-50 text-emerald-700 rounded-[2rem] border-4 border-transparent focus:border-emerald-500 focus:bg-white outline-none uppercase font-black text-3xl shadow-inner transition-all" />
                             </div>
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5 block">Pemilik / Supir</label>
-                                <input name="nama" required placeholder="Nama Lengkap..." className="w-full p-6 bg-slate-50 text-slate-700 rounded-[2rem] border-2 border-emerald-50 outline-none font-bold text-lg shadow-inner focus:border-emerald-500 focus:bg-white uppercase" />
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5 block">Nama Pemilik / Supir</label>
+                                <input name="nama" required placeholder="Ketik Nama Lengkap..." className="w-full p-6 bg-slate-50 text-slate-700 rounded-[2rem] border-4 border-transparent focus:border-emerald-500 focus:bg-white outline-none font-black text-xl shadow-inner uppercase transition-all" />
                             </div>
-                            <button disabled={isLoading} className="w-full bg-emerald-600 text-white p-8 rounded-[2rem] font-black text-xl shadow-xl hover:bg-emerald-700 active:scale-95 transition-all uppercase tracking-widest">Daftarkan Unit</button>
+                            <button disabled={isLoading} className="w-full bg-emerald-600 text-white p-8 rounded-[2.5rem] font-black text-xl shadow-2xl hover:bg-emerald-700 active:scale-95 transition-all uppercase tracking-[0.2em]">Daftarkan Unit Baru</button>
                         </form>
                     </div>
                 ) : (
-                    <div className="bg-white p-12 rounded-[4rem] border-t-[15px] border-emerald-600 text-center space-y-8 shadow-2xl animate-in zoom-in-95">
-                        <img src={registeredQR.qrUrl} className="w-64 h-64 mx-auto rounded-3xl bg-slate-50 p-4 shadow-inner" alt="QR" />
-                        <h3 className="text-6xl font-black text-slate-900 tracking-tighter leading-none">{registeredQR.platNomor}</h3>
-                        <p className="text-slate-500 font-extrabold uppercase tracking-[0.3em] text-sm leading-none">{registeredQR.namaPemilik}</p>
-                        <div className="flex gap-4">
-                            <button onClick={() => window.print()} className="flex-1 bg-slate-900 text-white p-6 rounded-[2rem] font-black flex items-center justify-center gap-4 hover:bg-black shadow-xl transition-all"><Printer size={24} /> CETAK</button>
-                            <button onClick={() => setRegisteredQR(null)} className="flex-1 bg-slate-100 text-slate-500 p-6 rounded-[2rem] font-black hover:bg-slate-200 transition-all">KEMBALI</button>
+                    <div className="bg-white p-12 rounded-[4rem] border-t-[16px] border-emerald-600 text-center space-y-10 shadow-2xl animate-in zoom-in-95">
+                        <div className="p-6 bg-slate-50 rounded-[3rem] inline-block shadow-inner">
+                            <img src={registeredQR.qrUrl} className="w-64 h-64 mx-auto rounded-2xl" alt="ID Card QR" />
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-7xl font-black text-slate-900 tracking-tighter leading-none mb-4 uppercase">{registeredQR.platNomor}</h3>
+                            <p className="text-slate-400 font-black uppercase tracking-[0.4em] text-sm leading-none">{registeredQR.namaPemilik}</p>
+                        </div>
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <button onClick={() => window.print()} className="flex-1 bg-slate-900 text-white p-6 rounded-[2rem] font-black flex items-center justify-center gap-4 hover:bg-black shadow-xl transition-all uppercase tracking-widest"><Printer size={24} /> Cetak Stiker</button>
+                            <button onClick={() => setRegisteredQR(null)} className="flex-1 bg-slate-50 text-slate-600 p-6 rounded-[2rem] font-black hover:bg-slate-100 transition-all uppercase tracking-widest">Selesai</button>
                         </div>
                     </div>
                 )}
             </div>
           )}
 
-          {/* UNITS DATABASE */}
+          {/* DATA UNITS VIEW */}
           {view === 'units' && (
-            <div className="space-y-8 animate-in fade-in duration-700 pb-20">
+            <div className="space-y-10 animate-in fade-in duration-700 pb-20">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <h2 className="text-4xl font-black text-slate-800 tracking-tighter leading-none">Database Unit</h2>
+                    <div className="flex items-center gap-6">
+                        <div className="h-16 w-16 bg-emerald-600 text-white rounded-[1.5rem] flex items-center justify-center shadow-2xl"><Database size={32} /></div>
+                        <div>
+                            <h2 className="text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">Database Unit</h2>
+                            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">Total: {vehicles.length} Unit Terdaftar</p>
+                        </div>
+                    </div>
                     <div className="relative w-full md:w-96">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-                        <input placeholder="Cari..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-14 pr-6 py-4 bg-white rounded-2xl border border-slate-100 outline-none font-bold text-sm shadow-sm" />
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={22} />
+                        <input placeholder="Cari Plat / Nama..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-16 pr-8 py-5 bg-white border-2 border-slate-50 rounded-[2rem] outline-none font-bold text-lg shadow-sm focus:border-emerald-500 transition-all uppercase" />
                     </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {vehicles.filter(v => v.platNomor.toLowerCase().includes(searchQuery.toLowerCase()) || v.namaPemilik.toLowerCase().includes(searchQuery.toLowerCase())).map(v => (
-                        <div key={v.id} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
-                            <div className="flex justify-between items-start mb-6">
-                                <div className="h-12 w-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><Car size={20} /></div>
-                                <button onClick={() => setSelectedQR(v)} className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm"><Printer size={16} /></button>
+                        <div key={v.id} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-md hover:shadow-xl transition-all group relative overflow-hidden flex flex-col items-center text-center">
+                            <div className="flex justify-between items-start w-full mb-4">
+                                <div className="h-14 w-14 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><Car size={24} /></div>
+                                <button onClick={() => setSelectedQR(v)} className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm"><Printer size={20} /></button>
                             </div>
-                            <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter leading-none mb-1">{v.platNomor}</h3>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">{v.namaPemilik}</p>
-                            <div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between">
+                            <h3 className="text-4xl font-black text-slate-900 uppercase tracking-tighter leading-none mb-2">{v.platNomor}</h3>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8 leading-none">{v.namaPemilik}</p>
+                            <div className="mt-auto w-full pt-6 border-t border-slate-50 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <span className={`h-2.5 w-2.5 rounded-full ${v.status === 'di_dalam' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-200'}`}></span>
-                                    <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{v.status === 'di_dalam' ? 'DI KEBUN' : 'DI LUAR'}</span>
+                                    <span className={`h-3 w-3 rounded-full ${v.status === 'di_dalam' ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 'bg-slate-200'}`}></span>
+                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{v.status === 'di_dalam' ? 'DI DALAM' : 'DI LUAR'}</span>
                                 </div>
+                                <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest tracking-tighter">ID: {v.id.substring(0,6)}</span>
                             </div>
                         </div>
                     ))}
+                    {vehicles.length === 0 && (
+                        <div className="col-span-full py-20 text-center bg-slate-50 rounded-[4rem] border-4 border-dashed border-slate-200">
+                            <Database size={64} className="mx-auto text-slate-200 mb-6" />
+                            <p className="text-slate-400 font-black uppercase text-sm tracking-[0.3em]">Belum Ada Data Unit Terdaftar</p>
+                        </div>
+                    )}
                 </div>
             </div>
           )}
         </div>
       </main>
 
-      {/* Modal Foto */}
+      {/* Modal Preview Foto */}
       {previewImage && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm transition-all animate-in fade-in" onClick={() => setPreviewImage(null)}>
-             <button onClick={() => setPreviewImage(null)} className="absolute top-8 right-8 text-white/50 hover:text-white transition-all"><X size={40}/></button>
-             <div className="max-w-4xl w-full flex flex-col items-center">
-                <img src={previewImage} className="max-h-[80vh] w-auto rounded-3xl shadow-2xl border-4 border-white/10" alt="Preview" />
-                <p className="text-white/50 font-black text-[10px] uppercase tracking-[0.5em] mt-8 tracking-widest">Dokumentasi Afdeling VI</p>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/95 backdrop-blur-md transition-all animate-in fade-in" onClick={() => setPreviewImage(null)}>
+             <button onClick={() => setPreviewImage(null)} className="absolute top-10 right-10 text-white/40 hover:text-white transition-colors"><X size={48}/></button>
+             <div className="max-w-5xl w-full flex flex-col items-center" onClick={e => e.stopPropagation()}>
+                <img src={previewImage} className="max-h-[85vh] w-auto rounded-[2rem] shadow-2xl border-[10px] border-white/5 object-contain" alt="Evidence Preview" />
+                <div className="mt-8 px-8 py-3 bg-white/10 rounded-full border border-white/10">
+                    <p className="text-white/60 font-black text-xs uppercase tracking-[0.4em] leading-none">Security Evidence • SmartGate Afdeling VI</p>
+                </div>
              </div>
         </div>
       )}
 
       {/* Modal QR Reprint */}
       {selectedQR && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md">
-          <div className="bg-white w-full max-w-sm rounded-[3.5rem] p-10 text-center shadow-2xl relative animate-in zoom-in-95">
-            <button onClick={() => setSelectedQR(null)} className="absolute top-8 right-8 text-slate-300 hover:text-rose-500 transition-colors"><X size={24} /></button>
-            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}`} className="w-48 h-48 mx-auto mb-6 bg-slate-50 p-4 rounded-3xl shadow-inner" alt="QR" />
-            <h3 className="text-5xl font-black text-slate-900 tracking-tighter leading-none mb-2">{selectedQR.platNomor}</h3>
-            <p className="text-emerald-600 font-black uppercase text-[10px] tracking-[0.3em] mb-10 leading-none">{selectedQR.namaPemilik}</p>
-            <button onClick={() => { setRegisteredQR({ ...selectedQR, qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}` }); setSelectedQR(null); setTimeout(() => window.print(), 100); }} className="w-full bg-slate-900 text-white p-5 rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-all">
-              <Printer size={18} /> CETAK ULANG
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm transition-all animate-in fade-in" onClick={() => setSelectedQR(null)}>
+          <div className="bg-white w-full max-w-sm rounded-[4rem] p-12 text-center shadow-2xl relative animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setSelectedQR(null)} className="absolute top-8 right-8 text-slate-300 hover:text-rose-500 transition-colors"><X size={28} /></button>
+            <div className="bg-slate-50 p-6 rounded-[2.5rem] inline-block mb-8 shadow-inner">
+                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}`} className="w-44 h-44 mx-auto rounded-xl" alt="QR" />
+            </div>
+            <h3 className="text-6xl font-black text-slate-900 tracking-tighter leading-none mb-3 uppercase">{selectedQR.platNomor}</h3>
+            <p className="text-emerald-600 font-black uppercase text-[10px] tracking-[0.3em] mb-12 leading-none">{selectedQR.namaPemilik}</p>
+            <button onClick={() => { setRegisteredQR({ ...selectedQR, qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}` }); setSelectedQR(null); setTimeout(() => window.print(), 200); }} className="w-full bg-slate-900 text-white p-6 rounded-[2rem] font-black flex items-center justify-center gap-4 shadow-2xl active:scale-95 transition-all uppercase tracking-widest">
+              <Printer size={22} /> CETAK STIKER
             </button>
           </div>
         </div>
@@ -790,6 +845,7 @@ export default function App() {
         .no-scrollbar::-webkit-scrollbar { display: none; }
         @keyframes scan { 0% { top: 0%; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
         .animate-scan { animation: scan 2s linear infinite; }
+        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
       `}} />
     </div>
   );
