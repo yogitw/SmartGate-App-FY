@@ -128,7 +128,7 @@
             render() {
                 if (this.state.hasError) {
                     return (
-                        <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0f172a', color: 'white', textAlign: 'center', padding: 40}}>
+                        <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyItems: 'center', background: '#0f172a', color: 'white', textAlign: 'center', padding: 40}}>
                             <h2 className="text-2xl font-black mb-4 uppercase tracking-tighter">Sistem Terhenti</h2>
                             <p className="text-slate-400 mb-8 text-sm">Terjadi gangguan pada render antarmuka.</p>
                             <button onClick={() => window.location.reload()} className="bg-emerald-600 px-8 py-4 rounded-2xl font-black shadow-lg">RELOAD APLIKASI</button>
@@ -204,11 +204,13 @@
             const [scanMode, setScanMode] = useState('masuk');
             const [isReady, setIsReady] = useState(false);
             const [officerSearch, setOfficerSearch] = useState('');
-            const [configError, setConfigError] = useState(null);
 
             const scannerRef = useRef(null);
             const fileInputRef = useRef(null);
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'smartgate-sei-rokan-v1';
+
+            // Kondisi agar Scanner aktif: Foto ada dan Plat ada
+            const isRequirementMet = !!capturedPhoto && manualPlate.trim().length > 0;
 
             useEffect(() => {
                 if (view === 'manage_officers' && userRole !== 'master') setView('dashboard');
@@ -252,7 +254,7 @@
                             setIsReady(true);
                         });
                     } catch (err) {
-                        setConfigError("Koneksi Database Gagal.");
+                        console.error(err);
                         setIsReady(true);
                     }
                 };
@@ -289,17 +291,17 @@
                     try {
                         if (scanner.getState() === 2) await scanner.stop();
                         await scanner.clear();
-                        const reader = document.getElementById("reader");
-                        if (reader) reader.innerHTML = "";
                     } catch (err) { console.warn(err); }
                 }
             };
 
+            // Lifecycle Scanner: Hanya jalan jika View Scan DAN Requirement terpenuhi
             useEffect(() => {
-                if (view !== 'scan' || !isReady) {
+                if (view !== 'scan' || !isReady || !isRequirementMet) {
                     safelyClearScanner();
                     return;
                 }
+
                 let isMounted = true;
                 const timer = setTimeout(async () => {
                     const readerElement = document.getElementById("reader");
@@ -307,16 +309,22 @@
                     try {
                         const html5QrCode = new Html5Qrcode("reader");
                         scannerRef.current = html5QrCode;
-                        await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (text) => { 
-                            if (isMounted) {
-                                setManualPlate(text.toUpperCase());
-                                showStatus("QR Terdeteksi!");
-                            } 
-                        }, () => {});
+                        await html5QrCode.start(
+                            { facingMode: "environment" }, 
+                            { fps: 10, qrbox: { width: 250, height: 250 } }, 
+                            (text) => { 
+                                if (isMounted) {
+                                    // Jika yang di-scan cocok dengan input manual, atau sekedar scan konfirmasi
+                                    processScan(text);
+                                } 
+                            }, 
+                            () => {}
+                        );
                     } catch (err) { console.error(err); }
                 }, 400);
+
                 return () => { isMounted = false; clearTimeout(timer); safelyClearScanner(); };
-            }, [view, isReady]);
+            }, [view, isReady, isRequirementMet]);
 
             const showStatus = (text, type = 'success') => {
                 setStatusMsg({ text, type });
@@ -333,11 +341,9 @@
                         setSession('Master Administrator', 'master', 'master-id');
                         return;
                     }
-                    
                     const oRef = f.collection(db, 'artifacts', appId, 'public', 'data', 'officers');
                     const q = f.query(oRef, f.where("name", "==", officerNameInput.trim()), f.where("password", "==", passwordInput.trim()));
                     const snap = await f.getDocs(q);
-                    
                     if (!snap.empty) {
                         const docId = snap.docs[0].id;
                         const data = snap.docs[0].data();
@@ -379,16 +385,16 @@
                     setUserRole(null);
                     localStorage.removeItem('smartgate_session');
                     setView('login');
-                } catch (e) {
-                    console.error(e);
-                } finally {
-                    setIsLoading(false);
-                }
+                } catch (e) { console.error(e); } finally { setIsLoading(false); }
             };
 
-            const processScan = async () => {
+            const processScan = async (scannedText) => {
                 if (isLoading || !user) return;
-                const plat = manualPlate.toUpperCase().trim();
+                
+                // Gunakan plat dari input manual atau hasil scan (jika scan duluan)
+                // Namun sesuai request, kita asumsikan manual input dulu.
+                const plat = (scannedText || manualPlate).toUpperCase().trim();
+                
                 if (!plat || !capturedPhoto) {
                     showStatus("Lengkapi Foto & Plat!", "error");
                     return;
@@ -537,9 +543,9 @@
                         </nav>
                         <div className="mt-auto pt-6 space-y-4">
                             <button onClick={handleLogout} className="w-full flex items-center justify-center gap-3 p-4 bg-rose-50 text-rose-600 rounded-2xl font-black text-xs hover:bg-rose-100 transition-all border border-rose-100 tracking-widest uppercase"><Icon name="LogOut" size={16} /> Keluar</button>
-                            <div className={`p-4 rounded-2xl border flex items-center gap-3 ${userRole === 'master' ? 'bg-slate-900 border-slate-800' : 'bg-emerald-50 border-emerald-100'}`}>
-                                <div className={`h-10 w-10 rounded-full flex items-center justify-center font-black text-[10px] border shadow-sm ${userRole === 'master' ? 'bg-slate-800 text-white border-slate-700' : 'bg-white text-emerald-600 border-emerald-100'}`}>{userRole === 'master' ? 'MS' : 'VI'}</div>
-                                <div className="overflow-hidden"><p className={`text-[8px] font-black uppercase tracking-widest leading-none mb-1 ${userRole === 'master' ? 'text-slate-400' : 'text-emerald-400'}`}>POS AKTIF</p><p className={`text-[10px] font-bold truncate uppercase ${userRole === 'master' ? 'text-white' : 'text-slate-900'}`}>{currentOfficer}</p></div>
+                            <div className={`p-4 rounded-2xl border flex items-center gap-3 ${userRole === 'master' ? 'bg-slate-900 border-slate-800 text-white' : 'bg-emerald-50 border-emerald-100'}`}>
+                                <div className={`h-10 w-10 rounded-full flex items-center justify-center font-black text-[10px] border shadow-sm ${userRole === 'master' ? 'bg-slate-800 border-slate-700' : 'bg-white text-emerald-600 border-emerald-100'}`}>{userRole === 'master' ? 'MS' : 'VI'}</div>
+                                <div className="overflow-hidden"><p className={`text-[8px] font-black uppercase tracking-widest leading-none mb-1 ${userRole === 'master' ? 'text-slate-400' : 'text-emerald-400'}`}>POS AKTIF</p><p className={`text-[10px] font-bold truncate uppercase`}>{currentOfficer}</p></div>
                             </div>
                         </div>
                     </aside>
@@ -558,7 +564,7 @@
                             </div>
                         </header>
 
-                        {/* Content Area with Vertical Scroll on the side */}
+                        {/* Content Area */}
                         <div className="flex-1 overflow-y-auto p-4 md:p-12 relative custom-scroll main-content overscroll-contain">
                             {statusMsg && <StatusToast message={statusMsg.text} type={statusMsg.type} />}
 
@@ -590,8 +596,6 @@
                                                             <div className="overflow-hidden">
                                                                 <p className="text-[10px] font-black uppercase truncate leading-none mb-1">{o.name}</p>
                                                                 <p className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest leading-none animate-pulse">AKTIF</p>
-                                                                <p className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest leading-none animate-pulse">SEDANG BERJAGA</p>
-
                                                             </div>
                                                         </div>
                                                     ))
@@ -618,21 +622,16 @@
                             {view === 'scan' && (
                                 <div className="max-w-2xl mx-auto space-y-6 pb-20 animate-in zoom-in-95">
                                     <div className="flex bg-slate-100 p-1.5 rounded-full shadow-inner">
-                                        <button onClick={() => setScanMode('masuk')} className={`flex-1 py-4 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${scanMode === 'masuk' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400'}`}>SCAN MASUK</button>
-                                        <button onClick={() => setScanMode('keluar')} className={`flex-1 py-4 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${scanMode === 'keluar' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-400'}`}>SCAN KELUAR</button>
-                                    </div>
-                                    
-                                    <div className="bg-slate-900 aspect-square rounded-[3rem] p-3 relative overflow-hidden border-[8px] border-white shadow-2xl">
-                                        <div id="reader" className="w-full h-full rounded-[2.2rem] overflow-hidden"></div>
-                                        <div className="absolute inset-0 pointer-events-none p-12">
-                                            <div className={`w-full h-1 opacity-50 shadow-[0_0_15px] animate-scan absolute top-0 left-0 ${scanMode === 'masuk' ? 'bg-emerald-400 shadow-emerald-400' : 'bg-rose-400 shadow-rose-400'}`}></div>
-                                        </div>
+                                        <button onClick={() => setScanMode('masuk')} className={`flex-1 py-4 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${scanMode === 'masuk' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400'}`}>MASUK</button>
+                                        <button onClick={() => setScanMode('keluar')} className={`flex-1 py-4 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${scanMode === 'keluar' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-400'}`}>KELUAR</button>
                                     </div>
 
+                                    {/* STEP 1: INPUT DATA (DIATAS SCANNER) */}
                                     <div className="bg-white p-6 md:p-10 rounded-[3rem] border border-slate-100 space-y-6 shadow-xl">
                                         <div className="space-y-4">
+                                            {/* Foto Bukti */}
                                             <div className="space-y-2 text-left">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Bukti Foto</label>
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Step 1: Ambil Bukti Foto</label>
                                                 {!capturedPhoto ? (
                                                     <button onClick={() => fileInputRef.current?.click()} className="w-full h-36 md:h-44 border-2 border-dashed border-slate-200 rounded-[2rem] flex flex-col items-center justify-center gap-3 text-slate-300 hover:text-emerald-500 hover:border-emerald-300 transition-all bg-slate-50/50 shadow-inner">
                                                         <Icon name="Camera" size={32} /> 
@@ -651,28 +650,40 @@
                                         
                                         <div className="space-y-4">
                                             <div className="space-y-2 text-left">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Nomor Plat</label>
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Step 2: Input Plat Nomor</label>
                                                 <input placeholder="BM 1234 XY" value={manualPlate} onChange={e => setManualPlate(e.target.value.toUpperCase())} className={`w-full p-5 text-center rounded-3xl border-2 outline-none uppercase font-black text-2xl md:text-4xl shadow-inner transition-all ${scanMode === 'masuk' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 focus:border-emerald-500' : 'bg-rose-50 text-rose-700 border-rose-100 focus:border-rose-500'}`} />
                                             </div>
                                             <textarea placeholder="KEPERLUAN / TUJUAN..." value={keteranganScan} onChange={e => setKeteranganScan(e.target.value)} className="w-full p-4 bg-slate-50 border-2 border-slate-50 rounded-3xl font-bold text-xs outline-none focus:border-emerald-500 min-h-[100px] shadow-inner uppercase transition-all" />
                                         </div>
 
-                                        <button 
-                                            onClick={processScan} 
-                                            disabled={isLoading || !capturedPhoto || manualPlate.trim().length === 0} 
-                                            className={`w-full py-6 md:py-8 rounded-3xl font-black text-sm md:text-xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
-                                                (!capturedPhoto || manualPlate.trim().length === 0) 
-                                                ? 'bg-slate-200 text-slate-400' 
-                                                : (scanMode === 'masuk' ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-rose-500 text-white hover:bg-rose-600')
-                                            }`}
-                                        >
-                                            {isLoading ? <div className="loader !w-5 !h-5 !border-white !border-t-transparent"></div> : 'KONFIRMASI AKSES'}
-                                        </button>
-                                        
-                                        {(!capturedPhoto || manualPlate.trim().length === 0) && (
-                                            <p className="text-[8px] md:text-[9px] text-center font-bold text-rose-500 uppercase tracking-widest leading-none">
-                                                *Lengkapi Foto & Plat Nomor
-                                            </p>
+                                        {/* STEP 3: SCAN QR (HANYA MUNCUL JIKA PERSYARATAN TERPENUHI) */}
+                                        {isRequirementMet ? (
+                                            <div className="space-y-4 animate-in zoom-in-95 duration-500">
+                                                <label className="text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-4">Step 3: Scan QR Verifikasi</label>
+                                                <div className="bg-slate-900 aspect-square rounded-[3rem] p-3 relative overflow-hidden border-[8px] border-emerald-500/20 shadow-2xl">
+                                                    <div id="reader" className="w-full h-full rounded-[2.2rem] overflow-hidden"></div>
+                                                    <div className="absolute inset-0 pointer-events-none p-12">
+                                                        <div className={`w-full h-1 opacity-50 shadow-[0_0_15px] animate-scan absolute top-0 left-0 ${scanMode === 'masuk' ? 'bg-emerald-400 shadow-emerald-400' : 'bg-rose-400 shadow-rose-400'}`}></div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <button 
+                                                    onClick={() => processScan()} 
+                                                    disabled={isLoading} 
+                                                    className={`w-full py-6 md:py-8 rounded-3xl font-black text-sm md:text-xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
+                                                        scanMode === 'masuk' ? 'bg-emerald-600 text-white' : 'bg-rose-500 text-white'
+                                                    }`}
+                                                >
+                                                    {isLoading ? <div className="loader !w-5 !h-5 !border-white !border-t-transparent"></div> : 'KONFIRMASI MANUAL'}
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="p-8 border-2 border-dashed border-slate-100 rounded-[2.5rem] bg-slate-50/30 text-center space-y-2">
+                                                <Icon name="Lock" size={32} className="mx-auto text-slate-200" />
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                                                    Lengkapi Foto & Plat untuk Membuka Scan QR
+                                                </p>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
