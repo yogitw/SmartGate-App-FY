@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SmartGate Afdeling VI - Sei Rokan</title>
     
     <!-- React, ReactDOM, and Babel Standalone -->
@@ -21,11 +21,56 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8FAFC; color: #0f172a; margin: 0; padding: 0; }
+        
+        :root {
+            --app-height: 100%;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #F8FAFC; 
+            color: #0f172a; 
+            margin: 0; 
+            padding: 0;
+            height: 100vh;
+            height: -webkit-fill-available;
+            overflow: hidden;
+        }
+
+        #root {
+            height: 100%;
+        }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1;
+        }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
         @keyframes scan { 0% { top: 0%; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
         .animate-scan { animation: scan 2s linear infinite; }
-        @media print { body * { visibility: hidden; } .print-only, .print-only * { visibility: visible; } .print-only { display: flex !important; position: fixed; left: 0; top: 0; width: 100%; height: 100%; align-items: center; justify-content: center; background: white; z-index: 9999; } }
+        
+        @media print { 
+            body * { visibility: hidden; } 
+            .print-only, .print-only * { visibility: visible; } 
+            .print-only { 
+                display: flex !important; 
+                position: fixed; left: 0; top: 0; width: 100%; height: 100%; 
+                align-items: center; justify-content: center; background: white; z-index: 9999; 
+            } 
+        }
         
         .loader {
             border: 3px solid rgba(16, 185, 129, 0.2);
@@ -36,9 +81,16 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 768px) {
+            .main-content {
+                height: calc(100dvh - 64px); /* Subtract header height */
+            }
+        }
     </style>
 </head>
-<body class="overflow-hidden">
+<body class="bg-slate-50">
     <div id="root">
         <div style="height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a;">
             <div class="loader"></div>
@@ -59,7 +111,6 @@
     </script>
 
     <script type="text/babel">
-        // 🔥 GLOBAL ERROR LOGGER
         window.onerror = function(message, source, lineno, colno, error) {
             console.log("GLOBAL ERROR:", message, error);
             return false;
@@ -67,7 +118,6 @@
 
         const { useState, useEffect, useRef, useMemo } = React;
 
-        // 🛡️ ERROR BOUNDARY COMPONENT
         class ErrorBoundary extends React.Component {
             constructor(props) {
                 super(props);
@@ -79,8 +129,9 @@
                 if (this.state.hasError) {
                     return (
                         <div style={{height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0f172a', color: 'white', textAlign: 'center', padding: 40}}>
-                            <h2 className="text-2xl font-black mb-4">Terjadi Error Sistem</h2>
-                            <button onClick={() => window.location.reload()} className="bg-emerald-600 px-8 py-4 rounded-2xl font-black shadow-lg">Reload Aplikasi</button>
+                            <h2 className="text-2xl font-black mb-4 uppercase tracking-tighter">Sistem Terhenti</h2>
+                            <p className="text-slate-400 mb-8 text-sm">Terjadi gangguan pada render antarmuka.</p>
+                            <button onClick={() => window.location.reload()} className="bg-emerald-600 px-8 py-4 rounded-2xl font-black shadow-lg">RELOAD APLIKASI</button>
                         </div>
                     );
                 }
@@ -121,16 +172,16 @@
         };
 
         const StatusToast = ({ message, type }) => (
-            <div className={`fixed top-20 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-white font-bold shadow-2xl z-[100] flex items-center gap-3 animate-bounce ${type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
+            <div className={`fixed top-20 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-white font-bold shadow-2xl z-[150] flex items-center gap-3 animate-bounce ${type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'}`}>
                 <Icon name={type === 'success' ? "CheckCircle2" : "AlertCircle"} size={18} />
-                <span className="text-sm whitespace-nowrap">{message}</span>
+                <span className="text-xs whitespace-nowrap uppercase tracking-widest">{message}</span>
             </div>
         );
 
         function App() {
             const [user, setUser] = useState(null);
             const [currentOfficer, setCurrentOfficer] = useState(null);
-            const [currentOfficerId, setCurrentOfficerId] = useState(null); // ID dokumen petugas
+            const [currentOfficerId, setCurrentOfficerId] = useState(null);
             const [userRole, setUserRole] = useState(null);
             const [view, setView] = useState('login');
             const [officerNameInput, setOfficerNameInput] = useState('');
@@ -163,7 +214,6 @@
                 if (view === 'manage_officers' && userRole !== 'master') setView('dashboard');
             }, [view, userRole]);
 
-            // Sync session
             useEffect(() => {
                 const saved = localStorage.getItem('smartgate_session');
                 if (saved) {
@@ -178,7 +228,6 @@
                 }
             }, []);
 
-            // Firebase Init
             useEffect(() => {
                 const checkStatus = setInterval(() => {
                     if (window.Firebase && window.lucide && window.Html5Qrcode) {
@@ -210,7 +259,6 @@
                 return () => clearInterval(checkStatus);
             }, []);
 
-            // Data Snapshots
             useEffect(() => {
                 if (!user || !window.Firebase) return;
                 const f = window.Firebase;
@@ -262,7 +310,7 @@
                         await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (text) => { 
                             if (isMounted) {
                                 setManualPlate(text.toUpperCase());
-                                showStatus("QR Berhasil Terbaca!");
+                                showStatus("QR Terdeteksi!");
                             } 
                         }, () => {});
                     } catch (err) { console.error(err); }
@@ -293,18 +341,15 @@
                     if (!snap.empty) {
                         const docId = snap.docs[0].id;
                         const data = snap.docs[0].data();
-                        
-                        // Perbarui status online di database
                         await f.updateDoc(f.doc(db, 'artifacts', appId, 'public', 'data', 'officers', docId), {
                             status: 'online',
                             lastActive: f.Timestamp.now()
                         });
-                        
                         setSession(data.name, 'officer', docId);
                     } else {
-                        showStatus("Kredensial Tidak Valid!", "error");
+                        showStatus("Identitas Salah!", "error");
                     }
-                } catch (err) { showStatus("Koneksi Bermasalah", "error"); } finally { setIsLoading(false); }
+                } catch (err) { showStatus("Koneksi Gagal", "error"); } finally { setIsLoading(false); }
             };
 
             const setSession = (name, role, id) => {
@@ -315,7 +360,7 @@
                 setView('dashboard');
                 setOfficerNameInput('');
                 setPasswordInput('');
-                showStatus(`Selamat Datang, ${name}`);
+                showStatus(`Login Berhasil: ${name}`);
             };
 
             const handleLogout = async () => {
@@ -345,7 +390,7 @@
                 if (isLoading || !user) return;
                 const plat = manualPlate.toUpperCase().trim();
                 if (!plat || !capturedPhoto) {
-                    showStatus("Harap ambil foto & input plat!", "error");
+                    showStatus("Lengkapi Foto & Plat!", "error");
                     return;
                 }
                 
@@ -357,7 +402,7 @@
                     const vDoc = await f.getDoc(vDocRef);
                     
                     if (!vDoc.exists()) { 
-                        showStatus("UNIT TIDAK TERDAFTAR!", "error"); 
+                        showStatus("UNIT TAK TERDAFTAR!", "error"); 
                         setIsLoading(false); 
                         return; 
                     }
@@ -367,10 +412,10 @@
                     const lRef = f.collection(db, 'artifacts', appId, 'public', 'data', 'logs');
                     
                     if (scanMode === 'masuk') {
-                        if (status === 'di_dalam') { showStatus("UNIT MASIH DI DALAM!", "error"); setIsLoading(false); return; }
+                        if (status === 'di_dalam') { showStatus("UNIT SUDAH DI DALAM!", "error"); setIsLoading(false); return; }
                         await f.addDoc(lRef, { platNomor: plat, namaPemilik: vData.namaPemilik, timestampMasuk: f.Timestamp.now(), status: 'AKTIF', petugasMasuk: currentOfficer, keterangan: keteranganScan || "AKSES RUTIN", photo: capturedPhoto || null });
                         await f.updateDoc(vDocRef, { status: 'di_dalam' });
-                        showStatus(`BERHASIL MASUK: ${plat}`);
+                        showStatus(`${plat} MASUK`);
                     } else {
                         if (status === 'di_luar') { showStatus("UNIT SUDAH DI LUAR!", "error"); setIsLoading(false); return; }
                         const q = f.query(lRef, f.where("platNomor", "==", plat), f.where("status", "==", "AKTIF"));
@@ -379,12 +424,12 @@
                             await f.updateDoc(f.doc(db, 'artifacts', appId, 'public', 'data', 'logs', snap.docs[0].id), { timestampKeluar: f.Timestamp.now(), status: 'SELESAI', petugasKeluar: currentOfficer, photoExit: capturedPhoto || null });
                         }
                         await f.updateDoc(vDocRef, { status: 'di_luar' });
-                        showStatus(`BERHASIL KELUAR: ${plat}`);
+                        showStatus(`${plat} KELUAR`);
                     }
                     
                     await safelyClearScanner();
                     setManualPlate(''); setKeteranganScan(''); setCapturedPhoto(null); setView('dashboard');
-                } catch (err) { showStatus("Gagal Memproses", "error"); } finally { setIsLoading(false); }
+                } catch (err) { showStatus("Gagal Proses", "error"); } finally { setIsLoading(false); }
             };
 
             const handleRegister = async (e) => {
@@ -398,8 +443,8 @@
                     const db = f.getFirestore();
                     await f.setDoc(f.doc(db, 'artifacts', appId, 'public', 'data', 'vehicles', plat), { platNomor: plat, namaPemilik: nama, createdAt: f.Timestamp.now(), status: 'di_luar', pendaftar: currentOfficer });
                     setRegisteredQR({ platNomor: plat, namaPemilik: nama, qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${plat}` });
-                    showStatus("Unit Terdaftar!");
-                } catch (err) { showStatus("Gagal Registrasi", "error"); } finally { setIsLoading(false); }
+                    showStatus("Pendaftaran Berhasil");
+                } catch (err) { showStatus("Gagal Daftar", "error"); } finally { setIsLoading(false); }
             };
 
             const addOfficer = async (e) => {
@@ -409,18 +454,13 @@
                 const fd = new FormData(e.target);
                 const name = fd.get('name').trim();
                 const pass = fd.get('pass').trim();
-                if (allOfficers.some(off => off.name.toLowerCase() === name.toLowerCase())) { showStatus("Nama sudah ada!", "error"); setIsLoading(false); return; }
+                if (allOfficers.some(off => off.name.toLowerCase() === name.toLowerCase())) { showStatus("Nama Duplikat!", "error"); setIsLoading(false); return; }
                 try {
                     const db = f.getFirestore();
-                    await f.addDoc(f.collection(db, 'artifacts', appId, 'public', 'data', 'officers'), { 
-                        name, 
-                        password: pass, 
-                        createdAt: f.Timestamp.now(),
-                        status: 'offline'
-                    });
+                    await f.addDoc(f.collection(db, 'artifacts', appId, 'public', 'data', 'officers'), { name, password: pass, createdAt: f.Timestamp.now(), status: 'offline' });
                     showStatus("Petugas Ditambahkan");
                     e.target.reset();
-                } catch (err) { showStatus("Gagal", "error"); } finally { setIsLoading(false); }
+                } catch (err) { showStatus("Gagal Tambah", "error"); } finally { setIsLoading(false); }
             };
 
             const deleteOfficer = async (id) => {
@@ -429,37 +469,37 @@
                     const db = f.getFirestore();
                     await f.deleteDoc(f.doc(db, 'artifacts', appId, 'public', 'data', 'officers', id));
                     showStatus("Petugas Dihapus");
-                } catch (err) { showStatus("Gagal", "error"); }
+                } catch (err) { showStatus("Gagal Hapus", "error"); }
             };
 
-            if (!isReady) return <div className="min-h-screen bg-slate-900 flex items-center justify-center"><div className="loader"></div></div>;
+            if (!isReady) return <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-12 text-center"><div className="flex flex-col items-center gap-6"><div className="loader !w-12 !h-12"></div><p className="font-bold text-emerald-500 uppercase tracking-widest text-[10px]">Memuat Basis Data...</p></div></div>;
 
             if (view === 'login') return (
-                <div className="min-h-screen bg-emerald-600 flex items-center justify-center p-6 text-slate-900">
-                    <div className="w-full max-w-md bg-white rounded-[3rem] p-10 shadow-2xl text-center space-y-8 animate-in zoom-in-95">
+                <div className="h-screen w-full bg-emerald-600 flex items-center justify-center p-6 text-slate-900 overflow-hidden">
+                    <div className="w-full max-w-sm bg-white rounded-[2.5rem] p-10 shadow-2xl text-center space-y-8 animate-in zoom-in-95">
                         <div className="flex flex-col items-center gap-4">
-                            <div className="h-20 w-20 bg-emerald-50 text-emerald-600 rounded-[2rem] flex items-center justify-center shadow-inner"><Icon name="ShieldCheck" size={48} /></div>
-                            <div><h1 className="text-3xl font-black text-slate-800 leading-tight text-emerald-600 tracking-tighter">SMARTGATE</h1><p className="text-slate-400 font-bold uppercase text-xs tracking-widest leading-none mt-1">AFDELING VI - SEI ROKAN</p></div>
+                            <div className="h-16 w-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner"><Icon name="ShieldCheck" size={40} /></div>
+                            <div><h1 className="text-2xl font-black text-slate-800 leading-none tracking-tighter">SMARTGATE</h1><p className="text-slate-400 font-bold uppercase text-[9px] tracking-widest mt-2 leading-none">AFDELING VI - SEI ROKAN</p></div>
                         </div>
                         <form onSubmit={handleLogin} className="space-y-6 text-left">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">ID Petugas</label>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Username</label>
                                 <div className="relative">
-                                    <Icon name="User" className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-300" size={18} />
-                                    <input type="text" value={officerNameInput} onChange={(e) => setOfficerNameInput(e.target.value)} placeholder="Username..." required className="w-full pl-14 pr-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-[2rem] font-bold outline-none focus:border-emerald-500 transition-all shadow-inner uppercase" />
+                                    <Icon name="User" className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-200" size={18} />
+                                    <input type="text" value={officerNameInput} onChange={(e) => setOfficerNameInput(e.target.value)} placeholder="Username..." required className="w-full pl-14 pr-8 py-4 bg-slate-50 border-2 border-slate-50 rounded-[1.8rem] font-bold outline-none focus:border-emerald-500 transition-all shadow-inner uppercase text-sm" />
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Sandi</label>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Kata Sandi</label>
                                 <div className="relative">
-                                    <Icon name="Lock" className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-300" size={18} />
-                                    <input type={showPassword ? "text" : "password"} value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} placeholder="••••••••" required className="w-full pl-14 pr-14 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] font-bold outline-none focus:border-emerald-500 transition-all shadow-inner" />
-                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-emerald-500"><Icon name={showPassword ? "EyeOff" : "Eye"} size={18} /></button>
+                                    <Icon name="Lock" className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-200" size={18} />
+                                    <input type={showPassword ? "text" : "password"} value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} placeholder="••••••••" required className="w-full pl-14 pr-14 py-4 bg-slate-50 border-2 border-slate-50 rounded-[1.8rem] font-bold outline-none focus:border-emerald-500 transition-all shadow-inner text-sm" />
+                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-emerald-500 transition-colors">{showPassword ? <Icon name="EyeOff" size={18} /> : <Icon name="Eye" size={18} />}</button>
                                 </div>
                             </div>
-                            <button type="submit" disabled={isLoading} className="w-full bg-emerald-600 text-white p-6 rounded-[2rem] font-black text-lg shadow-xl hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center gap-4">
-                                {isLoading ? <div className="loader !w-6 !h-6 !border-white !border-t-transparent"></div> : <Icon name="LogIn" size={20} />}
-                                <span>{isLoading ? 'MEMVERIFIKASI...' : 'MASUK SISTEM'}</span>
+                            <button type="submit" disabled={isLoading} className="w-full bg-emerald-600 text-white p-5 rounded-[1.8rem] font-black shadow-xl hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center gap-4 text-sm">
+                                {isLoading ? <div className="loader !w-5 !h-5 !border-white !border-t-transparent"></div> : <Icon name="LogIn" size={18} />}
+                                <span>MASUK POS JAGA</span>
                             </button>
                         </form>
                     </div>
@@ -467,13 +507,14 @@
             );
 
             return (
-                <div className="min-h-screen flex flex-col md:flex-row bg-[#F8FAFC] text-slate-900 overflow-hidden">
-                    <aside className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white border-r border-slate-100 transition-transform duration-300 z-[60] p-8 flex flex-col shadow-2xl md:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+                <div className="h-screen flex flex-col md:flex-row bg-slate-50 text-slate-900 overflow-hidden">
+                    {/* Sidebar */}
+                    <aside className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white border-r border-slate-100 transition-transform duration-300 z-[100] p-8 flex flex-col shadow-2xl md:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
                         <div className="flex items-center gap-4 mb-12">
                             <div className="h-12 w-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg"><Icon name="ShieldCheck" size={28} /></div>
-                            <div><h1 className="text-xl font-extrabold text-slate-800 leading-tight">SmartGate</h1><p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none mt-1">Afdeling VI</p></div>
+                            <div><h1 className="text-xl font-extrabold text-slate-800 tracking-tighter">SmartGate</h1><p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none mt-1">Afdeling VI</p></div>
                         </div>
-                        <nav className="space-y-1 flex-1 overflow-y-auto no-scrollbar">
+                        <nav className="space-y-1 flex-1 overflow-y-auto no-scrollbar custom-scroll">
                             {[
                                 {id:'dashboard', icon:'LayoutDashboard', label:'Dashboard'}, 
                                 {id:'scan', icon:'ShieldCheck', label:'Scan Akses'}, 
@@ -487,7 +528,7 @@
                             ))}
                             {userRole === 'master' && (
                                 <>
-                                    <div className="pt-8 pb-4 px-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">Administrator</div>
+                                    <div className="pt-8 pb-4 px-4 text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">Admin Area</div>
                                     <button onClick={async () => { if (view === 'scan') await safelyClearScanner(); setView('manage_officers'); setIsSidebarOpen(false); }} className={`flex items-center space-x-4 w-full p-4 rounded-xl font-bold text-sm transition-all ${view === 'manage_officers' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-500 hover:bg-slate-50'}`}>
                                         <Icon name="Users" size={20} /> <span>Kelola Tim</span>
                                     </button>
@@ -497,84 +538,108 @@
                         <div className="mt-auto pt-6 space-y-4">
                             <button onClick={handleLogout} className="w-full flex items-center justify-center gap-3 p-4 bg-rose-50 text-rose-600 rounded-2xl font-black text-xs hover:bg-rose-100 transition-all border border-rose-100 tracking-widest uppercase"><Icon name="LogOut" size={16} /> Keluar</button>
                             <div className={`p-4 rounded-2xl border flex items-center gap-3 ${userRole === 'master' ? 'bg-slate-900 border-slate-800' : 'bg-emerald-50 border-emerald-100'}`}>
-                                <div className={`h-10 w-10 rounded-full flex items-center justify-center font-black text-xs border shadow-sm ${userRole === 'master' ? 'bg-slate-800 text-white border-slate-700' : 'bg-white text-emerald-600 border-emerald-100'}`}>{userRole === 'master' ? 'MS' : 'VI'}</div>
-                                <div className="overflow-hidden"><p className={`text-[8px] font-black uppercase tracking-widest leading-none mb-1 ${userRole === 'master' ? 'text-slate-400' : 'text-emerald-400'}`}>PETUGAS JAGA</p><p className={`text-[10px] font-bold truncate uppercase`}>{currentOfficer}</p></div>
+                                <div className={`h-10 w-10 rounded-full flex items-center justify-center font-black text-[10px] border shadow-sm ${userRole === 'master' ? 'bg-slate-800 text-white border-slate-700' : 'bg-white text-emerald-600 border-emerald-100'}`}>{userRole === 'master' ? 'MS' : 'VI'}</div>
+                                <div className="overflow-hidden"><p className={`text-[8px] font-black uppercase tracking-widest leading-none mb-1 ${userRole === 'master' ? 'text-slate-400' : 'text-emerald-400'}`}>POS AKTIF</p><p className={`text-[10px] font-bold truncate uppercase ${userRole === 'master' ? 'text-white' : 'text-slate-900'}`}>{currentOfficer}</p></div>
                             </div>
                         </div>
                     </aside>
 
+                    {/* Main Container */}
                     <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-                        <header className="md:hidden bg-white border-b p-4 flex items-center justify-between sticky top-0 z-50 shadow-sm"><button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl"><Icon name="Menu" size={24} /></button><h2 className="text-xs font-black text-emerald-600 uppercase tracking-widest leading-none">SmartGate VI</h2><div className="w-10"></div></header>
-                        <div className="flex-1 overflow-y-auto p-4 md:p-12 relative no-scrollbar">
+                        {/* Mobile Header */}
+                        <header className="md:hidden bg-white border-b p-4 flex items-center justify-between sticky top-0 z-[80] shadow-sm flex-shrink-0">
+                            <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"><Icon name="Menu" size={24} /></button>
+                            <div className="flex flex-col items-center">
+                                <h2 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">SmartGate VI</h2>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase mt-1 leading-none">{view.replace('_', ' ')}</p>
+                            </div>
+                            <div className="h-10 w-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center font-black text-[10px] text-emerald-600 uppercase">
+                                {currentOfficer.substring(0, 2)}
+                            </div>
+                        </header>
+
+                        {/* Content Area with Vertical Scroll on the side */}
+                        <div className="flex-1 overflow-y-auto p-4 md:p-12 relative custom-scroll main-content overscroll-contain">
                             {statusMsg && <StatusToast message={statusMsg.text} type={statusMsg.type} />}
 
                             {view === 'dashboard' && (
-                                <div className="space-y-8 animate-in fade-in duration-500 pb-12">
-                                    <div className="bg-emerald-600 p-8 md:p-20 rounded-[4rem] text-white shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
+                                <div className="space-y-8 animate-in fade-in duration-500 pb-12 max-w-5xl mx-auto">
+                                    <div className="bg-emerald-600 p-8 md:p-20 rounded-[3rem] md:rounded-[4rem] text-white shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
                                         <div className="relative z-10 space-y-6">
-                                            <div className="bg-emerald-500/50 backdrop-blur-sm px-5 py-2 rounded-full inline-flex items-center gap-3 border border-emerald-400/50"><Icon name="UserCheck" size={14} /> <span className="text-[10px] font-black uppercase tracking-widest">{currentOfficer} • Pos VI</span></div>
+                                            <div className="bg-emerald-500/50 backdrop-blur-sm px-5 py-2 rounded-full inline-flex items-center gap-3 border border-emerald-400/50">
+                                                <Icon name="UserCheck" size={14} /> 
+                                                <span className="text-[10px] font-black uppercase tracking-widest leading-none">{currentOfficer} • Pos VI</span>
+                                            </div>
                                             <h2 className="text-3xl md:text-7xl font-black tracking-tighter uppercase leading-none">KEBUN <br/><span className="text-emerald-200">SEI ROKAN</span></h2>
-                                            <div className="text-5xl md:text-9xl font-black tabular-nums drop-shadow-2xl">{currentTime.toLocaleTimeString('id-ID')}</div>
-                                            <p className="text-[10px] md:text-base font-bold uppercase tracking-widest opacity-70">Security Gate Control VI</p>
+                                            <div className="text-5xl md:text-9xl font-black tabular-nums drop-shadow-2xl tracking-tighter leading-none">{currentTime.toLocaleTimeString('id-ID')}</div>
+                                            <p className="text-[10px] md:text-base font-bold uppercase tracking-[0.3em] opacity-70 leading-none">Security Gate Control VI</p>
                                         </div>
                                     </div>
 
-                                    {/* LIVE MONITORING UNTUK MASTER */}
                                     {userRole === 'master' && (
-                                        <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm space-y-6">
+                                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6 animate-in slide-in-from-bottom-4">
                                             <div className="flex items-center justify-between">
-                                                <h3 className="text-xl font-black uppercase tracking-tighter text-slate-800">Petugas On-Duty Hari Ini</h3>
-                                                <span className="bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase">Live Status</span>
+                                                <h3 className="text-lg font-black uppercase tracking-tighter text-slate-800">Petugas Aktif</h3>
+                                                <span className="bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest leading-none">LIVE MONITOR</span>
                                             </div>
                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                                 {allOfficers.filter(o => o.status === 'online').length > 0 ? (
                                                     allOfficers.filter(o => o.status === 'online').map(o => (
-                                                        <div key={o.id} className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center gap-3 animate-pulse">
+                                                        <div key={o.id} className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center gap-3 transition-all">
                                                             <div className="h-8 w-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-[10px] font-black">{o.name.charAt(0)}</div>
                                                             <div className="overflow-hidden">
-                                                                <p className="text-[10px] font-black uppercase truncate">{o.name}</p>
-                                                                <p className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest">AKTIF</p>
+                                                                <p className="text-[10px] font-black uppercase truncate leading-none mb-1">{o.name}</p>
+                                                                <p className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest leading-none animate-pulse">AKTIF</p>
                                                             </div>
                                                         </div>
                                                     ))
                                                 ) : (
-                                                    <div className="col-span-full py-4 text-center text-slate-300 text-[10px] font-bold uppercase tracking-widest">Tidak ada petugas eksternal yang aktif</div>
+                                                    <div className="col-span-full py-4 text-center text-slate-300 text-[10px] font-bold uppercase tracking-widest">Tidak Ada Petugas Aktif</div>
                                                 )}
                                             </div>
                                         </div>
                                     )}
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <button onClick={() => { setScanMode('masuk'); setView('scan'); }} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:border-emerald-500 transition-all text-left"><div className="h-20 w-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><Icon name="ArrowDownLeft" size={32}/></div><div><h3 className="font-black text-2xl text-slate-800 uppercase tracking-tighter leading-none">Scan Masuk</h3><p className="text-slate-400 text-xs font-bold uppercase mt-1">Otorisasi Unit Masuk</p></div></button>
-                                        <button onClick={() => { setScanMode('keluar'); setView('scan'); }} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:border-rose-500 transition-all text-left"><div className="h-20 w-20 bg-rose-50 text-rose-600 rounded-3xl flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-all shadow-inner"><Icon name="ArrowUpRight" size={32}/></div><div><h3 className="font-black text-2xl text-slate-800 uppercase tracking-tighter leading-none">Scan Keluar</h3><p className="text-slate-400 text-xs font-bold uppercase mt-1">Konfirmasi Unit Keluar</p></div></button>
+                                        <button onClick={() => { setScanMode('masuk'); setView('scan'); }} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:border-emerald-500 transition-all text-left">
+                                            <div className="h-16 w-16 md:h-20 md:w-20 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><Icon name="ArrowDownLeft" size={28}/></div>
+                                            <div><h3 className="font-black text-xl md:text-2xl text-slate-800 uppercase tracking-tighter leading-none">Scan Masuk</h3><p className="text-slate-400 text-[9px] md:text-xs font-bold uppercase mt-2 tracking-widest leading-none">Otorisasi Unit Masuk</p></div>
+                                        </button>
+                                        <button onClick={() => { setScanMode('keluar'); setView('scan'); }} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:border-rose-500 transition-all text-left">
+                                            <div className="h-16 w-16 md:h-20 md:w-20 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-all shadow-inner"><Icon name="ArrowUpRight" size={28}/></div>
+                                            <div><h3 className="font-black text-xl md:text-2xl text-slate-800 uppercase tracking-tighter leading-none">Scan Keluar</h3><p className="text-slate-400 text-[9px] md:text-xs font-bold uppercase mt-2 tracking-widest leading-none">Konfirmasi Unit Keluar</p></div>
+                                        </button>
                                     </div>
                                 </div>
                             )}
 
                             {view === 'scan' && (
-                                <div className="max-w-2xl mx-auto space-y-8 animate-in zoom-in-95 pb-20">
-                                    <div className="flex bg-slate-100 p-1.5 rounded-[2rem] shadow-inner">
-                                        <button onClick={() => setScanMode('masuk')} className={`flex-1 py-4 rounded-[1.8rem] font-black text-xs uppercase transition-all ${scanMode === 'masuk' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400'}`}>SCAN MASUK</button>
-                                        <button onClick={() => setScanMode('keluar')} className={`flex-1 py-4 rounded-[1.8rem] font-black text-xs uppercase transition-all ${scanMode === 'keluar' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-400'}`}>SCAN KELUAR</button>
+                                <div className="max-w-2xl mx-auto space-y-6 pb-20 animate-in zoom-in-95">
+                                    <div className="flex bg-slate-100 p-1.5 rounded-full shadow-inner">
+                                        <button onClick={() => setScanMode('masuk')} className={`flex-1 py-4 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${scanMode === 'masuk' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400'}`}>SCAN MASUK</button>
+                                        <button onClick={() => setScanMode('keluar')} className={`flex-1 py-4 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${scanMode === 'keluar' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-400'}`}>SCAN KELUAR</button>
                                     </div>
                                     
-                                    <div className="bg-slate-900 aspect-square rounded-[4rem] p-4 relative overflow-hidden border-[15px] border-white shadow-2xl">
-                                        <div id="reader" className="w-full h-full rounded-[3rem] overflow-hidden"></div>
-                                        <div className="absolute inset-0 pointer-events-none p-12"><div className={`w-full h-1 opacity-50 shadow-[0_0_15px] animate-scan absolute top-0 left-0 ${scanMode === 'masuk' ? 'bg-emerald-400 shadow-emerald-400' : 'bg-rose-400 shadow-rose-400'}`}></div></div>
+                                    <div className="bg-slate-900 aspect-square rounded-[3rem] p-3 relative overflow-hidden border-[8px] border-white shadow-2xl">
+                                        <div id="reader" className="w-full h-full rounded-[2.2rem] overflow-hidden"></div>
+                                        <div className="absolute inset-0 pointer-events-none p-12">
+                                            <div className={`w-full h-1 opacity-50 shadow-[0_0_15px] animate-scan absolute top-0 left-0 ${scanMode === 'masuk' ? 'bg-emerald-400 shadow-emerald-400' : 'bg-rose-400 shadow-rose-400'}`}></div>
+                                        </div>
                                     </div>
 
-                                    <div className="bg-white p-8 md:p-10 rounded-[3.5rem] border border-slate-100 space-y-8 shadow-sm">
+                                    <div className="bg-white p-6 md:p-10 rounded-[3rem] border border-slate-100 space-y-6 shadow-xl">
                                         <div className="space-y-4">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">FOTO BUKTI (WAJIB)</label>
+                                            <div className="space-y-2 text-left">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Bukti Foto</label>
                                                 {!capturedPhoto ? (
-                                                    <button onClick={() => fileInputRef.current?.click()} className="w-full h-44 border-4 border-dashed border-slate-100 rounded-[2.5rem] flex flex-col items-center justify-center gap-3 text-slate-300 hover:text-emerald-500 transition-all bg-slate-50/50">
-                                                        <Icon name="Camera" size={40} /> <span className="font-bold text-[10px] uppercase">AMBIL GAMBAR</span>
+                                                    <button onClick={() => fileInputRef.current?.click()} className="w-full h-36 md:h-44 border-2 border-dashed border-slate-200 rounded-[2rem] flex flex-col items-center justify-center gap-3 text-slate-300 hover:text-emerald-500 hover:border-emerald-300 transition-all bg-slate-50/50 shadow-inner">
+                                                        <Icon name="Camera" size={32} /> 
+                                                        <span className="font-bold text-[9px] uppercase tracking-widest">AMBIL FOTO UNIT</span>
                                                     </button>
                                                 ) : (
-                                                    <div className="relative rounded-[2.5rem] overflow-hidden border-4 border-emerald-100 shadow-xl h-60">
+                                                    <div className="relative rounded-[2rem] overflow-hidden border-2 border-emerald-100 shadow-lg h-52 md:h-60">
                                                         <img src={capturedPhoto} className="w-full h-full object-cover" />
-                                                        <button onClick={() => setCapturedPhoto(null)} className="absolute top-3 right-3 h-10 w-10 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg"><Icon name="Trash2" size={16} /></button>
+                                                        <button onClick={() => setCapturedPhoto(null)} className="absolute top-4 right-4 h-10 w-10 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform"><Icon name="Trash2" size={16} /></button>
                                                     </div>
                                                 )}
                                             </div>
@@ -583,28 +648,28 @@
                                         <input type="file" accept="image/*" capture="environment" hidden ref={fileInputRef} onChange={(e) => { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onloadend = () => setCapturedPhoto(reader.result); reader.readAsDataURL(file); } }} />
                                         
                                         <div className="space-y-4">
-                                            <div className="space-y-3">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">PLAT NOMOR (WAJIB)</label>
-                                                <input placeholder="BM 1234 XY" value={manualPlate} onChange={e => setManualPlate(e.target.value.toUpperCase())} className={`w-full p-6 text-center rounded-[2rem] border-4 outline-none uppercase font-black text-4xl shadow-inner transition-all ${scanMode === 'masuk' ? 'bg-emerald-50 text-emerald-700 border-emerald-50' : 'bg-rose-50 text-rose-700 border-rose-50'}`} />
+                                            <div className="space-y-2 text-left">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Nomor Plat</label>
+                                                <input placeholder="BM 1234 XY" value={manualPlate} onChange={e => setManualPlate(e.target.value.toUpperCase())} className={`w-full p-5 text-center rounded-3xl border-2 outline-none uppercase font-black text-2xl md:text-4xl shadow-inner transition-all ${scanMode === 'masuk' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 focus:border-emerald-500' : 'bg-rose-50 text-rose-700 border-rose-100 focus:border-rose-500'}`} />
                                             </div>
-                                            <textarea placeholder="KETERANGAN / TUJUAN..." value={keteranganScan} onChange={e => setKeteranganScan(e.target.value)} className="w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-[2rem] font-bold text-sm outline-none focus:border-emerald-500 min-h-[100px] shadow-inner uppercase" />
+                                            <textarea placeholder="KEPERLUAN / TUJUAN..." value={keteranganScan} onChange={e => setKeteranganScan(e.target.value)} className="w-full p-4 bg-slate-50 border-2 border-slate-50 rounded-3xl font-bold text-xs outline-none focus:border-emerald-500 min-h-[100px] shadow-inner uppercase transition-all" />
                                         </div>
 
                                         <button 
                                             onClick={processScan} 
                                             disabled={isLoading || !capturedPhoto || manualPlate.trim().length === 0} 
-                                            className={`w-full p-8 rounded-[2.5rem] font-black text-xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
+                                            className={`w-full py-6 md:py-8 rounded-3xl font-black text-sm md:text-xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
                                                 (!capturedPhoto || manualPlate.trim().length === 0) 
-                                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
-                                                : (scanMode === 'masuk' ? 'bg-emerald-600 text-white' : 'bg-rose-500 text-white')
+                                                ? 'bg-slate-200 text-slate-400' 
+                                                : (scanMode === 'masuk' ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-rose-500 text-white hover:bg-rose-600')
                                             }`}
                                         >
-                                            {isLoading ? <div className="loader !w-6 !h-6 !border-white !border-t-transparent"></div> : 'KONFIRMASI AKSES'}
+                                            {isLoading ? <div className="loader !w-5 !h-5 !border-white !border-t-transparent"></div> : 'KONFIRMASI AKSES'}
                                         </button>
                                         
                                         {(!capturedPhoto || manualPlate.trim().length === 0) && (
-                                            <p className="text-[9px] text-center font-bold text-rose-500 uppercase tracking-widest animate-pulse">
-                                                Lengkapi Foto & Plat Nomor untuk Konfirmasi
+                                            <p className="text-[8px] md:text-[9px] text-center font-bold text-rose-500 uppercase tracking-widest leading-none">
+                                                *Lengkapi Foto & Plat Nomor
                                             </p>
                                         )}
                                     </div>
@@ -612,52 +677,239 @@
                             )}
 
                             {view === 'history' && (
-                                <div className="space-y-8 animate-in fade-in duration-700 pb-20">
-                                    <div className="flex flex-col md:flex-row justify-between items-center gap-6"><h2 className="text-4xl font-black text-slate-800 tracking-tighter uppercase">Log Aktivitas</h2><div className="relative w-full md:w-96"><Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input placeholder="Cari Plat..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-14 pr-6 py-4 border border-slate-100 bg-white rounded-2xl outline-none" /></div></div>
-                                    <div className="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm"><div className="overflow-x-auto"><table className="w-full text-left min-w-[1000px]"><thead className="bg-emerald-50/20"><tr><th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest">Unit</th><th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest">Waktu</th><th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest">Keperluan</th><th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest">Petugas</th><th className="p-8 text-[10px] font-black uppercase text-emerald-600 tracking-widest text-right">Verifikasi</th></tr></thead><tbody className="divide-y divide-slate-50">{logs.filter(l => l.platNomor.toLowerCase().includes(searchQuery.toLowerCase())).map(l => (<tr key={l.id} className="hover:bg-emerald-50/5 transition-all group"><td className="p-8"><div className="font-black text-3xl text-slate-800 uppercase tracking-tighter leading-none">{l.platNomor}</div><div className="text-[10px] font-bold text-slate-400 uppercase mt-1">{l.namaPemilik}</div></td><td className="p-8"><div className="flex items-center gap-4">{(l.photo || l.photoExit) && <div onClick={() => setPreviewImage(l.photo || l.photoExit)} className="h-12 w-12 rounded-lg bg-slate-100 overflow-hidden cursor-zoom-in shadow-sm border border-white"><img src={l.photo || l.photoExit} className="w-full h-full object-cover" /></div>}<div><div className="font-black text-lg text-slate-700 tabular-nums">IN: {l.timestampMasuk?.toDate().toLocaleTimeString('id-ID')}</div>{l.timestampKeluar && <div className="font-black text-lg text-slate-700 tabular-nums">OUT: {l.timestampKeluar?.toDate().toLocaleTimeString('id-ID')}</div>}</div></div></td><td className="p-8"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{l.keterangan || "Akses Rutin"}</span></td><td className="p-8"><div className="text-[9px] font-black uppercase text-slate-600">IN: {l.petugasMasuk}</div>{l.petugasKeluar && <div className="text-[9px] font-black uppercase text-slate-600">OUT: {l.petugasKeluar}</div>}</td><td className="p-8 text-right"><span className="bg-emerald-600 text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md">Verified</span></td></tr>))}</tbody></table></div></div>
+                                <div className="space-y-6 animate-in fade-in duration-700 pb-20 max-w-6xl mx-auto">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                        <h2 className="text-2xl md:text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">Log Aktivitas</h2>
+                                        <div className="relative w-full md:w-80">
+                                            <Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                            <input placeholder="Cari Plat..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-12 pr-6 py-4 border-2 border-slate-50 bg-white rounded-2xl outline-none font-bold text-xs shadow-sm focus:border-emerald-500 transition-all uppercase" />
+                                        </div>
+                                    </div>
+                                    <div className="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
+                                        <div className="overflow-x-auto custom-scroll">
+                                            <table className="w-full text-left min-w-[900px]">
+                                                <thead className="bg-slate-50/50">
+                                                    <tr>
+                                                        <th className="p-6 text-[9px] font-black uppercase text-slate-400 tracking-widest leading-none">Informasi Unit</th>
+                                                        <th className="p-6 text-[9px] font-black uppercase text-slate-400 tracking-widest leading-none">Waktu Masuk</th>
+                                                        <th className="p-6 text-[9px] font-black uppercase text-slate-400 tracking-widest leading-none">Waktu Keluar</th>
+                                                        <th className="p-6 text-[9px] font-black uppercase text-slate-400 tracking-widest leading-none">Keterangan</th>
+                                                        <th className="p-6 text-[9px] font-black uppercase text-slate-400 tracking-widest leading-none">Petugas</th>
+                                                        <th className="p-6 text-right"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50">
+                                                    {logs.filter(l => l.platNomor.toLowerCase().includes(searchQuery.toLowerCase())).map(l => (
+                                                        <tr key={l.id} className="hover:bg-slate-50/50 transition-all">
+                                                            <td className="p-6">
+                                                                <div className="font-black text-2xl text-slate-800 uppercase tracking-tighter leading-none">{l.platNomor}</div>
+                                                                <div className="text-[10px] font-bold text-slate-400 uppercase mt-1 leading-none">{l.namaPemilik}</div>
+                                                            </td>
+                                                            <td className="p-6">
+                                                                <div className="flex items-center gap-3">
+                                                                    {l.photo && (
+                                                                        <div onClick={() => setPreviewImage(l.photo)} className="h-10 w-10 rounded-xl bg-slate-100 overflow-hidden cursor-zoom-in border border-white shadow-sm flex-shrink-0">
+                                                                            <img src={l.photo} className="w-full h-full object-cover" />
+                                                                        </div>
+                                                                    )}
+                                                                    <div className="leading-none">
+                                                                        <div className="font-black text-base text-slate-700 tabular-nums">{l.timestampMasuk?.toDate().toLocaleTimeString('id-ID')}</div>
+                                                                        <div className="text-[9px] font-bold text-slate-400 uppercase mt-1">{l.timestampMasuk?.toDate().toLocaleDateString('id-ID')}</div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td className="p-6">
+                                                                {l.timestampKeluar ? (
+                                                                    <div className="flex items-center gap-3">
+                                                                        {l.photoExit && (
+                                                                            <div onClick={() => setPreviewImage(l.photoExit)} className="h-10 w-10 rounded-xl bg-slate-100 overflow-hidden cursor-zoom-in border border-white shadow-sm flex-shrink-0">
+                                                                                <img src={l.photoExit} className="w-full h-full object-cover" />
+                                                                            </div>
+                                                                        )}
+                                                                        <div className="leading-none">
+                                                                            <div className="font-black text-base text-slate-700 tabular-nums">{l.timestampKeluar?.toDate().toLocaleTimeString('id-ID')}</div>
+                                                                            <div className="text-[9px] font-bold text-slate-400 uppercase mt-1">{l.timestampKeluar?.toDate().toLocaleDateString('id-ID')}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full tracking-widest leading-none">AKTIF</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="p-6">
+                                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight max-w-[150px] block leading-tight">{l.keterangan || "Akses Rutin"}</span>
+                                                            </td>
+                                                            <td className="p-6">
+                                                                <div className="text-[9px] font-black uppercase text-slate-500 leading-tight">In: {l.petugasMasuk}</div>
+                                                                {l.petugasKeluar && <div className="text-[9px] font-black uppercase text-slate-500 leading-tight mt-1">Out: {l.petugasKeluar}</div>}
+                                                            </td>
+                                                            <td className="p-6 text-right">
+                                                                <Icon name="CheckCircle2" size={16} className="text-emerald-500 inline-block" />
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {view === 'units' && (
+                                <div className="space-y-6 animate-in fade-in duration-700 pb-20 max-w-6xl mx-auto">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                        <h2 className="text-2xl md:text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">Database Unit</h2>
+                                        <div className="relative w-full md:w-80">
+                                            <Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                            <input placeholder="Cari Plat / Nama..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-12 pr-6 py-4 border-2 border-slate-50 bg-white rounded-2xl outline-none font-bold text-xs shadow-sm focus:border-emerald-500 transition-all uppercase" />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {vehicles.filter(v => v.platNomor.toLowerCase().includes(searchQuery.toLowerCase()) || v.namaPemilik.toLowerCase().includes(searchQuery.toLowerCase())).map(v => (
+                                            <div key={v.id} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center">
+                                                <div className="flex justify-between items-start w-full mb-3">
+                                                    <div className="h-10 w-10 bg-slate-50 text-slate-300 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><Icon name="Car" size={18} /></div>
+                                                    <button onClick={() => setSelectedQR(v)} className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all active:scale-90"><Icon name="Printer" size={14} /></button>
+                                                </div>
+                                                <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter leading-none mb-1">{v.platNomor}</h3>
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-4">{v.namaPemilik}</p>
+                                                <div className="mt-auto w-full pt-4 border-t border-slate-50 flex items-center justify-center">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`h-2 w-2 rounded-full ${v.status === 'di_dalam' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-200'}`}></span>
+                                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{v.status === 'di_dalam' ? 'DI AREA' : 'DI LUAR'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
                             {view === 'register' && (
                                 <div className="max-w-2xl mx-auto pb-20 animate-in slide-in-from-bottom-8">
-                                    {!registeredQR ? (<div className="bg-white p-14 rounded-[4rem] border border-slate-100 shadow-xl"><h2 className="text-3xl font-black text-slate-800 mb-8 uppercase tracking-tighter">Pendaftaran Unit</h2><form onSubmit={handleRegister} className="space-y-8"><div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Nomor Plat</label><input name="plat" required placeholder="BM 1234 XY" className="w-full p-6 bg-slate-50 text-emerald-700 rounded-[2rem] border-4 border-emerald-50 outline-none uppercase font-black text-3xl shadow-inner focus:border-emerald-500" /></div><div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-5">Nama Pemilik / Supir</label><input name="nama" required placeholder="Nama Lengkap..." className="w-full p-6 bg-slate-50 rounded-[2rem] border-2 border-emerald-50 outline-none font-bold shadow-inner focus:border-emerald-500 uppercase" /></div><button disabled={isLoading} className="w-full bg-emerald-600 text-white p-8 rounded-[2rem] font-black text-xl shadow-xl active:scale-95 transition-all">SIMPAN DATA</button></form></div>) : (<div className="bg-white p-12 rounded-[4rem] border-t-[15px] border-emerald-600 text-center space-y-10 shadow-2xl animate-in zoom-in-95"><img src={registeredQR.qrUrl} className="w-64 h-64 mx-auto rounded-3xl bg-slate-50 p-6 shadow-inner" /><h3 className="text-7xl font-black text-slate-900 uppercase tracking-tighter leading-none">{registeredQR.platNomor}</h3><p className="text-slate-500 font-extrabold uppercase tracking-widest text-sm">{registeredQR.namaPemilik}</p><div className="flex gap-4"><button onClick={() => window.print()} className="flex-1 bg-slate-900 text-white p-6 rounded-[2rem] font-black flex items-center justify-center gap-4 hover:bg-black transition-all shadow-xl"><Icon name="Printer" /> CETAK</button><button onClick={() => setRegisteredQR(null)} className="flex-1 bg-slate-100 text-slate-500 p-6 rounded-[2rem] font-black hover:bg-slate-200 transition-all">SELESAI</button></div></div>)}
+                                    {!registeredQR ? (
+                                        <div className="bg-white p-8 md:p-14 rounded-[3.5rem] border border-slate-100 shadow-xl space-y-8">
+                                            <div className="flex flex-col items-center text-center gap-3">
+                                                <div className="h-14 w-14 bg-emerald-50 text-emerald-600 rounded-[1.5rem] flex items-center justify-center shadow-inner"><Icon name="PlusCircle" size={28}/></div>
+                                                <h2 className="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-tighter leading-none">Registrasi Unit</h2>
+                                                <p className="text-slate-400 font-bold uppercase text-[9px] tracking-widest leading-none">AFDELING VI - SEI ROKAN</p>
+                                            </div>
+                                            <form onSubmit={handleRegister} className="space-y-6">
+                                                <div className="space-y-1 text-left">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Nomor Plat</label>
+                                                    <input name="plat" required placeholder="BM 1234 XY" className="w-full p-5 bg-slate-50 text-emerald-700 rounded-3xl border-2 border-transparent focus:border-emerald-500 outline-none uppercase font-black text-2xl md:text-3xl shadow-inner transition-all" />
+                                                </div>
+                                                <div className="space-y-1 text-left">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Nama Lengkap Pemilik</label>
+                                                    <input name="nama" required placeholder="NAMA SESUAI KTP/STNK..." className="w-full p-5 bg-slate-50 rounded-3xl border-2 border-transparent focus:border-emerald-500 outline-none font-bold text-sm md:text-lg shadow-inner uppercase transition-all" />
+                                                </div>
+                                                <button disabled={isLoading} className="w-full bg-emerald-600 text-white p-6 rounded-3xl font-black text-base md:text-xl shadow-xl active:scale-95 transition-all flex items-center justify-center gap-4">
+                                                    {isLoading ? <div className="loader !w-6 !h-6 !border-white !border-t-transparent"></div> : <Icon name="Save" size={20} />}
+                                                    <span>SIMPAN DATA UNIT</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-white p-10 rounded-[3.5rem] border-t-[12px] border-emerald-600 text-center space-y-10 shadow-2xl animate-in zoom-in-95">
+                                            <div className="p-6 bg-slate-50 rounded-[2.5rem] inline-block shadow-inner">
+                                                <img src={registeredQR.qrUrl} className="w-48 h-48 md:w-64 md:h-64 mx-auto rounded-xl" alt="QR" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-5xl md:text-7xl font-black text-slate-900 uppercase tracking-tighter leading-none mb-3">{registeredQR.platNomor}</h3>
+                                                <p className="text-slate-400 font-extrabold uppercase tracking-widest text-xs leading-none">{registeredQR.namaPemilik}</p>
+                                            </div>
+                                            <div className="flex flex-col md:flex-row gap-4">
+                                                <button onClick={() => window.print()} className="flex-1 bg-slate-900 text-white p-5 rounded-2xl font-black flex items-center justify-center gap-4 hover:bg-black transition-all shadow-xl text-sm uppercase tracking-widest leading-none"><Icon name="Printer" size={18} /> CETAK</button>
+                                                <button onClick={() => setRegisteredQR(null)} className="flex-1 bg-slate-50 text-slate-500 p-5 rounded-2xl font-black hover:bg-slate-100 transition-all text-sm uppercase tracking-widest leading-none">SELESAI</button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
-                            {view === 'units' && (
-                                <div className="space-y-8 animate-in fade-in duration-700 pb-20"><div className="flex flex-col md:flex-row justify-between items-center gap-6"><h2 className="text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">Database Unit</h2><div className="relative w-full md:w-96"><Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input placeholder="Cari Plat / Nama..." onChange={e => setSearchQuery(e.target.value)} className="w-full pl-14 pr-6 py-4 border border-slate-100 bg-white rounded-2xl outline-none font-bold text-sm shadow-sm uppercase" /></div></div><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{vehicles.filter(v => v.platNomor.toLowerCase().includes(searchQuery.toLowerCase()) || v.namaPemilik.toLowerCase().includes(searchQuery.toLowerCase())).map(v => (<div key={v.id} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-md flex flex-col items-center text-center transition-all group relative overflow-hidden"><div className="flex justify-between items-start w-full mb-4"><div className="h-12 w-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner"><Icon name="Car" size={24} /></div><button onClick={() => setSelectedQR(v)} className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all"><Icon name="Printer" size={16} /></button></div><h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter leading-none mb-1">{v.platNomor}</h3><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{v.namaPemilik}</p><div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between w-full"><div className="flex items-center gap-2"><span className={`h-2.5 w-2.5 rounded-full ${v.status === 'di_dalam' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-200'}`}></span><span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{v.status === 'di_dalam' ? 'DI AREA' : 'DI LUAR'}</span></div></div></div>))}</div></div>
-                            )}
-
                             {view === 'manage_officers' && userRole === 'master' && (
-                                <div className="space-y-12 animate-in slide-in-from-bottom-8 pb-20"><div className="flex flex-col md:flex-row justify-between items-center gap-6"><h2 className="text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">Kelola Tim Jaga</h2><div className="relative w-full md:w-80"><Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input placeholder="Cari Personel..." value={officerSearch} onChange={e => setOfficerSearch(e.target.value)} className="w-full pl-14 pr-6 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm shadow-sm outline-none" /></div></div><div className="grid grid-cols-1 lg:grid-cols-3 gap-8"><div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl space-y-8 h-fit lg:sticky lg:top-12"><h3 className="text-xl font-black uppercase tracking-tighter">Tambah Personel</h3><form onSubmit={addOfficer} className="space-y-6"><input name="name" required placeholder="NAMA LENGKAP" className="w-full p-5 bg-slate-50 rounded-2xl font-bold border-2 border-transparent focus:border-emerald-500 outline-none uppercase shadow-inner" /><input name="pass" type="password" required placeholder="KATA SANDI" className="w-full p-5 bg-slate-50 rounded-2xl font-bold border-2 border-transparent focus:border-emerald-500 outline-none shadow-inner" /><button type="submit" disabled={isLoading} className="w-full bg-emerald-600 text-white p-5 rounded-2xl font-black shadow-lg">DAFTARKAN</button></form></div><div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {allOfficers.filter(o => o.name.toLowerCase().includes(officerSearch.toLowerCase())).map(off => (
-                                        <div key={off.id} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-emerald-200 transition-all">
-                                            <div className="flex items-center gap-4">
-                                                <div className="relative">
-                                                    <div className="h-14 w-14 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center font-black text-xs uppercase">{off.name.charAt(0)}</div>
-                                                    <div className={`absolute -bottom-1 -right-1 h-4 w-4 border-2 border-white rounded-full ${off.status === 'online' ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
-                                                </div>
-                                                <div>
-                                                    <p className="font-black text-slate-800 uppercase leading-none">{off.name}</p>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        <span className={`text-[8px] font-black uppercase tracking-widest ${off.status === 'online' ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                                            {off.status === 'online' ? 'AKTIF SEKARANG' : 'OFFLINE'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <button onClick={() => { if(window.confirm(`Hapus akun ${off.name}?`)) deleteOfficer(off.id); }} className="p-3 text-slate-200 hover:text-rose-600 transition-all"><Icon name="Trash2" size={18} /></button>
+                                <div className="space-y-8 animate-in slide-in-from-bottom-8 pb-20 max-w-6xl mx-auto">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                        <h2 className="text-2xl md:text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">Kelola Tim Jaga</h2>
+                                        <div className="relative w-full md:w-80">
+                                            <Icon name="Search" className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                            <input placeholder="Cari Personel..." value={officerSearch} onChange={e => setOfficerSearch(e.target.value)} className="w-full pl-12 pr-6 py-4 bg-white border-2 border-slate-50 rounded-2xl font-bold text-xs shadow-sm outline-none focus:border-slate-300 uppercase transition-all" />
                                         </div>
-                                    ))}
-                                </div></div></div>
+                                    </div>
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl space-y-6 h-fit lg:sticky lg:top-12">
+                                            <div className="flex items-center gap-3">
+                                                <Icon name="UserPlus" className="text-emerald-500" size={20} />
+                                                <h3 className="text-lg font-black uppercase tracking-tighter leading-none">Tambah Tim</h3>
+                                            </div>
+                                            <form onSubmit={addOfficer} className="space-y-4">
+                                                <input name="name" required placeholder="NAMA LENGKAP" className="w-full p-4 bg-slate-50 rounded-2xl font-bold border-2 border-transparent focus:border-emerald-500 outline-none uppercase text-xs shadow-inner transition-all" />
+                                                <input name="pass" type="password" required placeholder="KATA SANDI" className="w-full p-4 bg-slate-50 rounded-2xl font-bold border-2 border-transparent focus:border-emerald-500 outline-none text-xs shadow-inner transition-all" />
+                                                <button type="submit" disabled={isLoading} className="w-full bg-slate-900 text-white p-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-3 text-xs active:scale-95 transition-transform uppercase tracking-widest leading-none">
+                                                    {isLoading ? <div className="loader !w-4 !h-4 !border-white !border-t-transparent"></div> : <Icon name="Plus" size={14} />}
+                                                    <span>DAFTARKAN</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {allOfficers.filter(o => o.name.toLowerCase().includes(officerSearch.toLowerCase())).map(off => (
+                                                <div key={off.id} className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-emerald-200 transition-all">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="relative">
+                                                            <div className="h-12 w-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-black text-xs uppercase shadow-inner">{off.name.charAt(0)}</div>
+                                                            <div className={`absolute -bottom-1 -right-1 h-3.5 w-3.5 border-2 border-white rounded-full ${off.status === 'online' ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+                                                        </div>
+                                                        <div className="overflow-hidden">
+                                                            <p className="font-black text-slate-800 uppercase leading-none tracking-tight truncate max-w-[120px]">{off.name}</p>
+                                                            <p className={`text-[8px] font-bold uppercase mt-1 tracking-widest leading-none ${off.status === 'online' ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                                                {off.status === 'online' ? 'AKTIF' : 'OFFLINE'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <button onClick={() => { if(window.confirm(`Hapus ${off.name}?`)) deleteOfficer(off.id); }} className="p-3 text-slate-200 hover:text-rose-600 transition-all active:scale-90"><Icon name="Trash2" size={16} /></button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     </main>
 
-                    {previewImage && (<div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm" onClick={() => setPreviewImage(null)}><button onClick={() => setPreviewImage(null)} className="absolute top-8 right-8 text-white/50 hover:text-white transition-all"><Icon name="X" size={40}/></button><img src={previewImage} className="max-h-[85vh] w-auto rounded-3xl shadow-2xl border-4 border-white/10" /></div>)}
-                    {selectedQR && (<div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm transition-all animate-in fade-in" onClick={() => setSelectedQR(null)}><div className="bg-white w-full max-w-sm rounded-[4rem] p-12 text-center shadow-2xl relative animate-in zoom-in-95" onClick={e => e.stopPropagation()}><button onClick={() => setSelectedQR(null)} className="absolute top-8 right-8 text-slate-300 hover:text-rose-500 transition-colors"><Icon name="X" size={28} /></button><div className="bg-slate-50 p-6 rounded-[2.5rem] inline-block mb-8 shadow-inner"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}`} className="w-44 h-44 mx-auto rounded-xl" alt="QR" /></div><h3 className="text-6xl font-black text-slate-900 tracking-tighter leading-none mb-3 uppercase">{selectedQR.platNomor}</h3><p className="text-emerald-600 font-black uppercase text-[10px] tracking-[0.3em] mb-12 leading-none">{selectedQR.namaPemilik}</p><button onClick={() => { setRegisteredQR({ ...selectedQR, qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}` }); setSelectedQR(null); setTimeout(() => window.print(), 200); }} className="w-full bg-slate-900 text-white p-6 rounded-[2rem] font-black flex items-center justify-center gap-4 shadow-2xl active:scale-95 transition-all uppercase tracking-widest"><Icon name="Printer" size={22} /> CETAK STIKER</button></div></div>)}
+                    {/* Image Preview Overlay */}
+                    {previewImage && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in" onClick={() => setPreviewImage(null)}>
+                            <button onClick={() => setPreviewImage(null)} className="absolute top-6 right-6 text-white/50 hover:text-white transition-all"><Icon name="X" size={32}/></button>
+                            <img src={previewImage} className="max-h-[80dvh] w-auto rounded-2xl shadow-2xl border-4 border-white/10 object-contain" />
+                        </div>
+                    )}
+
+                    {/* QR Print Overlay */}
+                    {selectedQR && (
+                        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-slate-900/70 backdrop-blur-sm animate-in fade-in" onClick={() => setSelectedQR(null)}>
+                            <div className="bg-white w-full max-w-sm rounded-[3.5rem] p-10 text-center shadow-2xl relative animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
+                                <button onClick={() => setSelectedQR(null)} className="absolute top-8 right-8 text-slate-300 hover:text-rose-500 transition-colors"><Icon name="X" size={24} /></button>
+                                <div className="bg-slate-50 p-6 rounded-[2.5rem] inline-block mb-6 shadow-inner">
+                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}`} className="w-40 h-40 mx-auto rounded-xl" alt="QR" />
+                                </div>
+                                <h3 className="text-5xl font-black text-slate-900 tracking-tighter leading-none mb-2 uppercase">{selectedQR.platNomor}</h3>
+                                <p className="text-emerald-600 font-black uppercase text-[9px] tracking-widest mb-10 leading-none">{selectedQR.namaPemilik}</p>
+                                <button onClick={() => { setRegisteredQR({ ...selectedQR, qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${selectedQR.platNomor}` }); setSelectedQR(null); setTimeout(() => window.print(), 200); }} className="w-full bg-slate-900 text-white p-5 rounded-2xl font-black flex items-center justify-center gap-4 shadow-xl active:scale-95 transition-all text-sm uppercase tracking-widest leading-none">
+                                    <Icon name="Printer" size={20} /> CETAK STIKER
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     
-                    <div className="print-only hidden">{registeredQR && (<div className="flex flex-col items-center justify-center border-2 border-black p-10 w-[100mm] h-[100mm] text-center bg-white text-black"><h1 className="m-0 text-sm font-black uppercase">AFDELING VI SEI ROKAN</h1><img src={registeredQR.qrUrl} className="w-[50mm] h-[50mm] my-4" /><h2 className="m-0 text-4xl font-black uppercase tracking-tighter">{registeredQR.platNomor}</h2><p className="mt-2 text-xs font-bold uppercase">{registeredQR.namaPemilik}</p></div>)}</div>
+                    <div className="print-only hidden">
+                        {registeredQR && (
+                            <div className="flex flex-col items-center justify-center border-2 border-black p-10 w-[100mm] h-[100mm] text-center bg-white text-black">
+                                <h1 className="m-0 text-sm font-black uppercase">AFDELING VI SEI ROKAN</h1>
+                                <img src={registeredQR.qrUrl} className="w-[50mm] h-[50mm] my-4" />
+                                <h2 className="m-0 text-4xl font-black uppercase tracking-tighter">{registeredQR.platNomor}</h2>
+                                <p className="mt-2 text-xs font-bold uppercase">{registeredQR.namaPemilik}</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             );
         }
