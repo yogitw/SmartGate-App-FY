@@ -343,7 +343,7 @@
                     const lRef = f.collection(db, 'artifacts', appId, 'public', 'data', 'logs');
                     
                     if (scanMode === 'masuk') {
-                        if (status === 'di_dalam') { showStatus("UNIT MASIH DI DALAM!", "error"); setIsLoading(false); return; }
+                        if (status === 'di_dalam') { showStatus("AKSES DI TOLAJ UNIT MASIH DI DALAM!", "error"); setIsLoading(false); return; }
                         await f.addDoc(lRef, { platNomor: plat, namaPemilik: vData.namaPemilik, timestampMasuk: f.Timestamp.now(), status: 'AKTIF', petugasMasuk: currentOfficer, keterangan: keteranganScan || "AKSES RUTIN", photo: capturedPhoto });
                         await f.updateDoc(vDocRef, { status: 'di_dalam' });
                         showStatus(`BERHASIL SCAN: ${plat} MASUK`, "success");
